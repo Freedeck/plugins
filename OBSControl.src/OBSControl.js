@@ -13,7 +13,7 @@ class OBSControl extends Plugin {
     constructor() {
         // With JS Hooks, you must keep the ID of your plugin the name of the source folder.
         super('OBS Control', 'Freedeck', 'OBSControl', false);
-        this.version = '1.0.0';
+        this.version = '1.2.0';
     }
 
     currentSceneTitle() {
@@ -114,6 +114,7 @@ class OBSControl extends Plugin {
             console.log('[OBSControl] Connected and identified. OBS WS: v' + info.obsWebSocketVersion)
             if(this.deregisterType) this.deregisterType('obs.auth');
             this.registerNewType('Current Scene', 'obs.cs', {}, 'text');
+            this.registerNewType('Current Scene', 'obs.cs', {}, 'text');
             
             this.registerNewType('Source Visibility', 'obs.src.vis', {Scene: 'Change me!', Source:'Change me!'}, 'button');
             
@@ -172,6 +173,7 @@ class OBSControl extends Plugin {
             obs.addListener('CurrentProgramSceneChanged', (data) => {
                 console.log('Current scene changed to', data.sceneName)
                 this.currentScene = data.sceneName;
+                _SIO.emit('oc_cs', data.sceneName);
             });
             obs.addListener('InputVolumeChanged', (data) => {
                 if(_SIO == false) return;

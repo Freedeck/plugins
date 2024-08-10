@@ -6,6 +6,19 @@ universal.on('oc_cs', (data) => {
     if (inter.type == 'obs.cs') {
       btn.innerText = data;
     }
+    if (inter.type.startsWith('obs.ss')) {
+      let scene = inter.type.split('obs.ss.')[1];
+      if (!btn.querySelector('#oc_indi')) {
+        let indicator = document.createElement('div');
+        indicator.id = 'oc_indi';
+        btn.appendChild(indicator);
+      }
+      if (data == scene) {
+        btn.querySelector('#oc_indi').classList.add('indicator-green');
+      } else {
+        btn.querySelector('#oc_indi').classList.remove('indicator-green');
+      }
+    }
   })
 })
 
