@@ -18,4 +18,14 @@ module.exports = (socket, io, instance) => {
 			socket.emit('oc_str', data);
 		})
 	})
+	socket.on('oc_rb', () => {
+		instance.replayBufferStatus().then((data) => {
+			socket.emit('oc_rb', data);
+		})
+	})
+	socket.on('oc_rb_save', () => {
+		instance.saveFromReplayBuffer().then((data) => {
+			socket.emit('oc_rb_save', data);
+		})
+	})
 }

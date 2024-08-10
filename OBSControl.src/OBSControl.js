@@ -53,6 +53,22 @@ class OBSControl extends Plugin {
         });
     }
 
+    replayBufferStatus() {
+        return obs.call("GetReplayBufferStatus").then((data) => {
+            return data;
+        }).catch(err => {
+            return err;
+        })
+    }
+
+    saveFromReplayBuffer() {
+        return obs.call("SaveReplayBuffer").then((data) => {
+            return data;
+        }).catch(err => {
+            return err;
+        })
+    }
+
     SockyInterop(socket, io) {
         console.log('Loaded Socket Interop for OBSControl!')
         _SS = socket;
@@ -83,16 +99,24 @@ class OBSControl extends Plugin {
     tryConnecting() {
         let pswd = this.getFromSaveData('password');
         obs.connect('ws://localhost:4455', pswd).then((info) => {
+            console.log('[OBSControl] Connected and identified. OBS WS: v' + info.obsWebSocketVersion)
             if(this.deregisterType) this.deregisterType('obs.auth');
             this.registerNewType('Current Scene', 'obs.cs', {}, 'text');
+            
             this.registerNewType('Start Recording', 'obs.rec.start', {}, 'button');
             this.registerNewType('Stop Recording', 'obs.rec.stop', {}, 'button');
             this.registerNewType('Toggle Start/Stop Recording', 'obs.rec.toggle', {}, 'button');
             this.registerNewType('Toggle Pause/Unpause', 'obs.rec.toggle_pause', {}, 'button');
+            
             this.registerNewType('Start Streaming', 'obs.str.start', {}, 'button');
             this.registerNewType('Stop Streaming', 'obs.str.stop', {}, 'button');
             this.registerNewType('Toggle Start/Stop Streaming', 'obs.str.toggle', {}, 'button');
-            console.log('[OBSControl] Connected and identified. OBS WS: v' + info.obsWebSocketVersion)
+            
+            this.registerNewType('Start Replay Buffer', 'obs.rb.start')
+            this.registerNewType('Save from Replay Buffer', 'obs.rb.save')
+            this.registerNewType('Stop Replay Buffer', 'obs.rb.stop')
+            this.registerNewType('Toggle Replay Buffer', 'obs.rb.toggle')
+            
             obs.call('GetCurrentProgramScene').then((data) => {
                 this.currentScene = data.sceneName;
             }).catch((err) => {
@@ -138,9 +162,24 @@ class OBSControl extends Plugin {
                 console.log('Volume of input', data.inputName, 'changed to', data.inputVolumeDb)
                 _SIO.emit('oc_vo', {...data, uuid: data.inputUuid});
             })
+            obs.addListener('ReplayBufferSaved', (data) => {
+                if(_SIO == false) return;
+                console.log('Replay buffer saved!');
+                this.pushNotification('Replay buffer saved!');
+            });
         }, (e) => {
             console.error('Error Connecting', e)
-            this.registerNewType('Retry Connection', 'obs.cf', {}, 'button');
+        });
+        this.registerNewType('Reconnect to OBS', 'obs.cf', {}, 'button');
+    }
+
+    typeToCall(call, returnNotif = false, notifHook=(e)=>{}) {
+        obs.call(call).then((data) => {
+            console.log('Called', call, 'successfully');
+            return data;
+        }).catch((err) => {
+            console.error('Error while calling', call, err);
+            if(returnNotif) notifHook(err)
         });
     }
 
@@ -167,36 +206,53 @@ class OBSControl extends Plugin {
             }).catch((err) => {
                 console.error('Error while setting input volume', err);
             })
-        } else if(interaction.type == 'obs.rec.start') {
-            obs.call('StartRecord').catch((err) => {
-                console.error('Error while starting recording', err);
-            })
-        } else if(interaction.type == 'obs.rec.stop') {
-            obs.call('StopRecord').catch((err) => {
-                console.error('Error while stopping recording', err);
-            })
-        } else if(interaction.type == 'obs.rec.toggle_pause') {
-            obs.call('ToggleRecordPause').catch((err) => {
-                console.error('Error while toggling recording pause', err);
-            });
-        } else if(interaction.type == 'obs.rec.toggle') {
-            obs.call('ToggleRecord').then((res) => {
-                _SIO.emit('oc_rec', res.outputActive);
-            }).catch((err) => {
-                console.error('Error while toggling recording pause', err);
-            });
-        } else if(interaction.type == 'obs.str.start') {
-            obs.call('StartStream').catch((err) => {
-                console.error('Error while starting streaming', err);
-            })
-        } else if(interaction.type == 'obs.str.stop') {
-            obs.call('StopStream').catch((err) => {
-                console.error('Error while stopping streaming', err);
-            })
-        } else if(interaction.type == 'obs.str.toggle') {
-            obs.call('ToggleStream').catch((err) => {
-                console.error('Error while toggling streaming', err);
-            })
+        } 
+        switch(interaction.type) {
+            default:
+                this.pushNotification('Unknown button type: ' + interaction.type);
+                break;
+            case 'obs.rec.start':
+                this.typeToCall('StartRecord');
+                break;
+            case 'obs.rec.stop':
+                this.typeToCall('StopRecord');
+                break;
+            case 'obs.rec.toggle':
+                let out = this.typeToCall('ToggleRecord');
+                _SIO.emit('oc_rec', out.outputActive);
+                break;
+            case 'obs.rec.toggle_pause':
+                this.typeToCall('ToggleRecordPause');
+                break;
+            case 'obs.str.start':
+                this.typeToCall('StartStream', true, (e) => {
+                    let msg = e.code == 500 ? 'You\'re already streaming!' : e.error;
+                    this.pushNotification('Error while starting stream. ' + msg);
+                });
+                break;
+            case 'obs.str.stop':
+                this.typeToCall('StopStream', true, (e) => {
+                    let msg = e.code == 500 ? 'You\'re not streaming!' : e.error;
+                    this.pushNotification('Error while stopping stream. ' + msg);
+                });
+                break;
+            case 'obs.str.toggle':
+                let str = this.typeToCall('ToggleStream');
+                _SIO.emit('oc_str', str.outputActive);
+                break;
+            case 'obs.rb.start':
+                this.typeToCall('StartReplayBuffer');
+                break;
+            case 'obs.rb.stop':
+                this.typeToCall('StopReplayBuffer');
+                break;
+            case 'obs.rb.toggle':
+                let rb = this.typeToCall('ToggleReplayBuffer');
+                _SIO.emit('oc_rb', rb.outputActive);
+                break;
+            case 'obs.rb.save':
+                this.typeToCall('SaveReplayBuffer');
+                break;
         }
         return true;
     }
