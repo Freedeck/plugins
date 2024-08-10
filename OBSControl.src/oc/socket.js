@@ -28,4 +28,9 @@ module.exports = (socket, io, instance) => {
 			socket.emit('oc_rb_save', data);
 		})
 	})
+	socket.on('oc_ms', (idata) => {
+		instance.muteStatus(idata.name, idata.uuid).then((data) => {
+			socket.emit('oc_ms', {...data, uuid: idata.uuid});
+		})
+	})
 }

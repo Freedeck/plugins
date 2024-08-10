@@ -69,6 +69,17 @@ class OBSControl extends Plugin {
         })
     }
 
+    muteStatus(name,iuid) {
+        return obs.call('GetInputMute', {
+            inputName: name,
+            inputUuid: iuid
+        }).then((data) => {
+            return data;
+        }).catch(err => {
+            return err;
+        }) 
+    }
+
     SockyInterop(socket, io) {
         console.log('Loaded Socket Interop for OBSControl!')
         _SS = socket;
@@ -89,6 +100,7 @@ class OBSControl extends Plugin {
             console.log('You\'re running Freedeck on a version below v6.0.0-ob7!')
             console.log('You will only notice the "Authenticate OBS" tile type not being removed. The plugin will still work as normal.');
         }
+        this.registerNewType('Reconnect to OBS', 'obs.cf', {}, 'button');
         this.registerNewType('Authenticate OBS', 'obs.auth', {}, 'button');
         this.tryConnecting();
 
@@ -133,6 +145,7 @@ class OBSControl extends Plugin {
                 this.wasOutputs = data.inputs;
                 data.inputs.forEach((input) => {
                     this.registerNewType('Volume of ' + input.inputName, 'obs.v.' + input.inputUuid, {name:input.inputName, value:0,format:'dB',min: -100, max: 25, direction: 'vertical'}, 'slider');
+                    this.registerNewType('Mute ' + input.inputName, 'obs.m.' + input.inputUuid, {name:input.inputName}, 'button');
                 })
             }).catch((err) => {
                 console.error('Error while getting output (WASAPI OUT) capture list', err);
@@ -141,6 +154,7 @@ class OBSControl extends Plugin {
                 this.wasInputs = data.inputs;
                 data.inputs.forEach((input) => {
                     this.registerNewType('Volume of ' + input.inputName, 'obs.v.' + input.inputUuid, {name:input.inputName, value:0,format:'dB', min: -100, max: 25, direction: 'vertical'}, 'slider');
+                    this.registerNewType('Mute ' + input.inputName, 'obs.m.' + input.inputUuid, {name:input.inputName}, 'button');
                 })
             }).catch((err) => {
                 console.error('Error while getting output (WASAPI IN) capture list', err);
@@ -167,10 +181,14 @@ class OBSControl extends Plugin {
                 console.log('Replay buffer saved!');
                 this.pushNotification('Replay buffer saved!');
             });
+            obs.addListener('InputMuteStateChanged', (data) => {
+                if(_SIO == false) return;
+                console.log('Mute state of input', data.inputName, 'changed to', data.inputMuted);
+                _SIO.emit('oc_ms', {...data, uuid: data.inputUuid});
+            });
         }, (e) => {
             console.error('Error Connecting', e)
         });
-        this.registerNewType('Reconnect to OBS', 'obs.cf', {}, 'button');
     }
 
     typeToCall(call, returnNotif = false, notifHook=(e)=>{}) {
@@ -206,10 +224,16 @@ class OBSControl extends Plugin {
             }).catch((err) => {
                 console.error('Error while setting input volume', err);
             })
-        } 
+        } else if(interaction.type.startsWith('obs.m.')) {
+            let uuid = interaction.type.split('obs.m.')[1];
+            obs.call('ToggleInputMute', {
+                inputUuid: uuid
+            }).catch((err) => {
+                console.error('Error while toggling mute', err);
+            })
+        }
         switch(interaction.type) {
             default:
-                this.pushNotification('Unknown button type: ' + interaction.type);
                 break;
             case 'obs.rec.start':
                 this.typeToCall('StartRecord');
