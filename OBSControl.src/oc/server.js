@@ -167,7 +167,7 @@ const obsc_handlePageChange = () => {
   document.querySelectorAll('.button').forEach((btn) => {
     let inter = JSON.parse(btn.getAttribute('data-interaction'));
     if (inter != null) {
-      if (inter.type == 'obs.cs') {
+      if (inter.type.startsWith('obs.ss') || inter.type == 'obs.cs') {
         universal.send('oc_cs');
       }
       if (inter.type.startsWith('obs.v.')) {
