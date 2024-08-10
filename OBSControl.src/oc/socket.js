@@ -8,4 +8,14 @@ module.exports = (socket, io, instance) => {
 			socket.emit('oc_vo', {...data, uuid: idata.uuid});
 		})
 	})
+	socket.on('oc_rec', () => {
+		instance.recordStatus().then((data) => {
+			socket.emit('oc_rec', data);
+		})
+	})
+	socket.on('oc_str', () => {
+		instance.streamStatus().then((data) => {
+			socket.emit('oc_str', data);
+		})
+	})
 }
