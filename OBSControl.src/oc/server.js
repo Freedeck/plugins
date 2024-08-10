@@ -128,6 +128,28 @@ universal.on('oc_ms', (data) => {
   });
 });
 
+universal.on('oc_src_vis', (data) => {
+  document.querySelectorAll('.button').forEach((btn) => {
+    let inter = JSON.parse(btn.getAttribute('data-interaction'));
+    if (inter == null) return;
+
+    if (inter.type == 'obs.src.vis' && inter.data.Source == data.sourceName) {
+      if (data.sceneItemEnabled) {
+        if (!btn.querySelector('#oc_indi')) {
+          let indicator = document.createElement('div');
+          indicator.id = 'oc_indi';
+          btn.appendChild(indicator);
+        }
+        btn.querySelector('#oc_indi').classList.remove('indicator-red');
+        btn.querySelector('#oc_indi').classList.add('indicator-green');
+      } else {
+        btn.querySelector('#oc_indi').classList.remove('indicator-green');
+        btn.querySelector('#oc_indi').classList.add('indicator-red');
+      }
+    }
+  });
+});
+
 const obsc_handlePageChange = () => {
   document.querySelectorAll('.button').forEach((btn) => {
     let inter = JSON.parse(btn.getAttribute('data-interaction'));
@@ -166,6 +188,15 @@ const obsc_handlePageChange = () => {
         universal.send('oc_ms', {
           name: inter.data.name,
           uuid: inter.type.split('obs.m.')[1]
+        });
+        btn.appendChild(indicator);
+      }
+      if (inter.type == 'obs.src.vis') {
+        let indicator = document.createElement('div');
+        indicator.id = 'oc_indi';
+        universal.send('oc_src_vis', {
+          Scene: inter.data.Scene,
+          Source: inter.data.Source,
         });
         btn.appendChild(indicator);
       }

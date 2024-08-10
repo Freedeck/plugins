@@ -33,4 +33,9 @@ module.exports = (socket, io, instance) => {
 			socket.emit('oc_ms', {...data, uuid: idata.uuid});
 		})
 	})
+	socket.on('oc_src_vis', (idata) => {
+		instance.visibility(idata.Scene, idata.Source).then((data) => {
+			socket.emit('oc_src_vis', {...data, uuid: idata.uuid});
+		})
+	})
 }

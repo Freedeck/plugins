@@ -115,6 +115,8 @@ class OBSControl extends Plugin {
             if(this.deregisterType) this.deregisterType('obs.auth');
             this.registerNewType('Current Scene', 'obs.cs', {}, 'text');
             
+            this.registerNewType('Source Visibility', 'obs.src.vis', {Scene: 'Change me!', Source:'Change me!'}, 'button');
+            
             this.registerNewType('Start Recording', 'obs.rec.start', {}, 'button');
             this.registerNewType('Stop Recording', 'obs.rec.stop', {}, 'button');
             this.registerNewType('Toggle Start/Stop Recording', 'obs.rec.toggle', {}, 'button');
@@ -186,6 +188,13 @@ class OBSControl extends Plugin {
                 console.log('Mute state of input', data.inputName, 'changed to', data.inputMuted);
                 _SIO.emit('oc_ms', {...data, uuid: data.inputUuid});
             });
+            obs.addListener('SceneItemEnableStateChanged', (data) => {
+                if(_SIO == false) return;
+                console.log('Visibility of input', data.sceneItemId, 'changed to', data.sceneItemEnabled);
+                this.whoIsSceneItem(data.sceneName, data.sceneItemId).then((source) => {
+                    _SIO.emit('oc_src_vis', {...data, ...source});
+                });
+            })
         }, (e) => {
             console.error('Error Connecting', e)
         });
@@ -199,6 +208,47 @@ class OBSControl extends Plugin {
             console.error('Error while calling', call, err);
             if(returnNotif) notifHook(err)
         });
+    }
+
+    setEnabled(state, name, scene) {
+        obs.call('GetSceneItemId', {
+            sourceName: name,
+            sceneName: scene,
+        }).then((id) => {
+            obs.call('SetSceneItemEnabled', {
+                sourceName: name,
+                sceneName: scene,
+                sceneItemEnabled: state,
+                sceneItemId: id.sceneItemId
+            })
+        })
+    }
+
+    whoIsSceneItem(name, id) {
+        return obs.call('GetSceneItemSource', {
+            sceneName: name,
+            sceneItemId: id
+        }).then((data) => {
+            return data;
+        }).catch((e) => {
+            return e;
+        });
+    }
+
+    visibility(scene, name) {
+        return obs.call('GetSceneItemId', {
+            sceneName: scene,
+            sourceName: name,
+        }).then((id) => {
+            return obs.call('GetSceneItemEnabled', {
+                sourceName: name,
+                sceneName: scene,
+                sceneItemId: id.sceneItemId
+            }).then((data) => {
+                return {...data, sourceName: name, uuid: id.sceneItemId};
+            })
+        }).catch((e) => {
+        })
     }
 
     onButton(interaction) {
@@ -276,6 +326,11 @@ class OBSControl extends Plugin {
                 break;
             case 'obs.rb.save':
                 this.typeToCall('SaveReplayBuffer');
+                break;
+            case 'obs.src.vis':
+                this.visibility(interaction.data.Scene, interaction.data.Source).then((data) => {
+                    this.setEnabled(!data.sceneItemEnabled, interaction.data.Source, interaction.data.Scene);
+                })
                 break;
         }
         return true;
