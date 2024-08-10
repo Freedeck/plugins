@@ -194,6 +194,12 @@ class OBSControl extends Plugin {
                 this.whoIsSceneItem(data.sceneName, data.sceneItemId).then((source) => {
                     _SIO.emit('oc_src_vis', {...data, ...source});
                 });
+            });
+            obs.addListener('ConnectionClosed', (e) => {
+                console.error('Connection closed', e);
+                _SIO = false;
+                _SS = false;
+                this.pushNotification('Lost connection to OBS! Please reconnect by pressing the "Reconnect to OBS" Tile.');
             })
         }, (e) => {
             console.error('Error Connecting', e)
