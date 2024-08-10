@@ -9,7 +9,7 @@ const { exec } = require('node:child_process');
  * - Edit the FDE_Settings object below to configure your environment.
  */
 
-let name = 'MyFirstPlugin'
+let name = 'OBSControl'
 let bundleName = name + '.Freedeck'
 // let bundleName = 'ExamplePlugin.Freedeck'
 const FDE_Settings = {
@@ -40,9 +40,15 @@ function buildPhase() {
 						console.log('Simulated initialization with ABR')
 						FDE_Settings._abr_run_output = output
 						resolve(true)
-					}).catch(reject)
+					}).catch((e) => {
+						console.error(e)
+						reject(e)
+					})
 	
-				}).catch(reject)
+				}).catch((e) => {
+					console.error(e)
+					reject(e)
+				})
 			})
 		}).catch(console.error)
 	})

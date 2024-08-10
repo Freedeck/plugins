@@ -1,5 +1,5 @@
 {
-  "name": "exampleplugin",
+  "name": "obscontrol",
   "version": "1.0.0",
   "description": "",
   "main": "config.js",
@@ -8,5 +8,8 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "obs-websocket-js": "^5.0.5"
+  }
 }
