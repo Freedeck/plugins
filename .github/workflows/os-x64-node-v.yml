@@ -11,66 +11,6 @@ on:
     tags:
       - "v*.*.*"
 jobs:
-  build-x64-linux:
-
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
-    steps:
-    - uses: actions/checkout@v3
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm i
-    - run: node index.js
-    - name: Upload a Build Artifact
-      uses: actions/upload-artifact@v4.3.1
-      with:
-        name: linux-x64-node-${{ matrix.node-version }}.Freedeck
-        path: ./plugins/*.Freedeck
-    - name: Rename file for platform
-      run: mv ./plugins/*.Freedeck ./plugins/linux-x64-node-${{matrix.node-version}}.Freedeck
-    - name: Release
-      uses: softprops/action-gh-release@v2
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        files: ./plugins/*.Freedeck
-  build-x64-macos:
-
-    runs-on: macos-latest
-
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
-    steps:
-    - uses: actions/checkout@v3
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm i
-    - run: node index.js
-    - name: Upload a Build Artifact
-      uses: actions/upload-artifact@v4.3.1
-      with:
-        name: macos-x64-node-${{ matrix.node-version }}.Freedeck
-        path: ./plugins/*.Freedeck
-    - name: Rename file for platform
-      run: mv ./plugins/*.Freedeck ./plugins/macos-x64-node-${{matrix.node-version}}.Freedeck
-    - name: Release
-      uses: softprops/action-gh-release@v2
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        files: ./plugins/*.Freedeck
   build-x64-windows:
 
     runs-on: windows-latest 
@@ -92,10 +32,10 @@ jobs:
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v4.3.1
       with:
-        name: windows-x64-node-${{ matrix.node-version }}.Freedeck
+        name: OBSControl.Freedeck
         path: ./plugins/*.Freedeck
     - name: Rename file for platform
-      run: mv ./plugins/*.Freedeck ./plugins/windows-x64-node-${{matrix.node-version}}.Freedeck
+      run: mv ./plugins/*.Freedeck ./plugins/OBSControl.Freedeck
     - name: Release
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
