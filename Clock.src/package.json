@@ -1,0 +1,16 @@
+{
+  "name": "clock",
+  "version": "1.0.0",
+  "description": "A simple time-keeping plugin for Freedeck",
+  "main": "Clock.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Freedeck",
+  "freedeck": {
+    "title": "Clock",
+    "package": "plugin"
+  },
+  "license": "ISC"
+}

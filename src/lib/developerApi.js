@@ -26,6 +26,7 @@ function debugLog(...args) {
 }
 
 class Operations {
+  static CLEAR_PLUGINS_PRE_PACKAGE = -1;
   static MANIFEST_PRE_PACKAGE = 0;
   static INSTALL_DEPS_PRE_PACKAGE = 2;
   static RUN_POST_PACKAGE = 1;
@@ -43,6 +44,12 @@ function makePackage(opt = {}) {
   if (!fs.existsSync(opt.src)) {
     console.error(`${opt.id} ERROR >> Source directory ${opt.src} does not exist.`);
     process.exit(1);
+  }
+
+  if(opt.extra.includes(Operations.CLEAR_PLUGINS_PRE_PACKAGE)) {
+    fs.readdirSync(opt.out).forEach((file) => {
+      fs.unlinkSync(path.resolve(opt.out, file));
+    });
   }
 
   if(!fs.existsSync(path.resolve(opt.src, "package.json"))) {

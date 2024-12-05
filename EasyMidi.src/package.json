@@ -1,0 +1,19 @@
+{
+  "name": "easymidi",
+  "version": "1.0.0",
+  "description": "A simple midi loopback and tiles for loopMIDI",
+  "main": "easymidi.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Freedeck DEV",
+  "freedeck": {
+    "title": "EasyMidi",
+    "package": "plugin"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "easymidi": "^3.1.0"
+  }
+}

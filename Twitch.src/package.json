@@ -1,0 +1,17 @@
+{
+	"name": "twitch",
+	"version": "1.0.0",
+	"description": "See any streamer's live viewer-count!",
+	"main": "Twitch.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"keywords": [],
+	"author": "Freedeck",
+	"license": "ISC",
+	"freedeck": {
+		"title": "Twitch",
+		"package": "plugin"
+	},
+	"dependencies": {}
+}

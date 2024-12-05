@@ -33,9 +33,9 @@ jobs:
       uses: actions/upload-artifact@v4.3.1
       with:
         name: linux-x64-node-${{ matrix.node-version }}.Freedeck
-        path: ./plugins/*.Freedeck
+        path: ./plugins/*.fdpackage
     - name: Rename file for platform
-      run: mv ./plugins/*.Freedeck ./plugins/linux-x64-node-${{matrix.node-version}}.Freedeck
+      run: mv ./plugins/*.fdpackage ./plugins/linux-x64-node-${{matrix.node-version}}.Freedeck
     - name: Release
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
