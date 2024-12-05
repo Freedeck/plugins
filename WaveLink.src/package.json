@@ -1,0 +1,19 @@
+{
+  "name": "wavelink",
+  "version": "1.0.0",
+  "description": "Control your Elgato WaveLink devices from Freedeck",
+  "main": "WL.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Freedeck",
+  "license": "ISC",
+  "dependencies": {
+    "@darrellvs/node-wave-link-sdk": "^1.0.14"
+  },
+  "freedeck": {
+    "title": "WaveLink",
+    "package": "plugin"
+  }
+}

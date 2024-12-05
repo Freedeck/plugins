@@ -10,11 +10,6 @@ class OBSControl extends Plugin {
     scenes;
     wasOutputs;
     wasInputs;
-    constructor() {
-        // With JS Hooks, you must keep the ID of your plugin the name of the source folder.
-        super('OBS Control', 'Freedeck', 'OBSControl', false);
-        this.version = '1.2.1';
-    }
 
     currentSceneTitle() {
         return new Promise((resolve, reject) => {
@@ -86,6 +81,12 @@ class OBSControl extends Plugin {
         _SIO = io;
     }
 
+    constructor() {
+        // With JS Hooks, you must keep the ID of your plugin the name of the source folder.
+        super('OBS Control', 'Freedeck', 'OBSControl', false);
+        this.version = '1.3.0';
+    }
+
     onInitialize() {
         console.log('Initialized OBSControl!')
         this.setJSServerHook("oc/server.js");
@@ -97,12 +98,16 @@ class OBSControl extends Plugin {
             this.setToSaveData('password', 'password');
         }
         if(!this.deregisterType) {
-            console.log('You\'re running Freedeck on a version below v6.0.0-ob7!')
-            console.log('You will only notice the "Authenticate OBS" tile type not being removed. The plugin will still work as normal.');
+            console.log('[OC] You\'re running Freedeck on a version below v6.0.0-ob7!')
+            console.log('[OC] You will only notice the "Authenticate OBS" tile type not being removed. The plugin will still work as normal.');
         }
         this.registerNewType('Reconnect to OBS', 'obs.cf', {}, 'button');
         this.registerNewType('Authenticate OBS', 'obs.auth', {}, 'button');
-        this.tryConnecting();
+        try {
+            this.tryConnecting();
+        } catch(err) {
+            console.log("[OC] Could not connect.")
+        }
 
         // This is all you need to do. Freedeck will do all of the logic for you.
         return true;
@@ -204,7 +209,7 @@ class OBSControl extends Plugin {
                 this.pushNotification('Lost connection to OBS! Please reconnect by pressing the "Reconnect to OBS" Tile.');
             })
         }, (e) => {
-            console.error('Error Connecting', e)
+            console.error('[OC] Could not connect.', e)
         });
     }
 

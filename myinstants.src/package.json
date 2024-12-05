@@ -1,8 +1,8 @@
 {
-  "name": "freedeck-plugin-dev",
+  "name": "myinstants",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "config.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,9 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@electron/asar": "^3.2.8",
-    "asar-bundle-runner": "^1.6.0",
-    "obs-websocket-js": "^5.0.5",
-    "tar": "^7.4.3"
+    "cheerio": "^1.0.0",
+    "cors-anywhere": "^0.4.4"
   }
 }

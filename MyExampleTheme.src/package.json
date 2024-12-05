@@ -1,0 +1,12 @@
+{
+  "name": "myexampletheme",
+  "version": "1.0.0",
+  "description": "This is a test .fdpackage but THEME!!!",
+  "main": "main.css",
+  "author": "Freedeck",
+  "license": "ISC",
+  "freedeck": {
+    "package": "theme",
+    "title": "My Example Theme Test"
+  }
+}

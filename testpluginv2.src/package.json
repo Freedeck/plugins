@@ -1,0 +1,16 @@
+{
+  "name": "testpluginv2",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Aria",
+  "license": "ISC",
+  "description": "An example plugin using the PluginV2 class.",
+  "freedeck": {
+    "title": "Testing PluginV2",
+    "package": "plugin"
+  }
+}
