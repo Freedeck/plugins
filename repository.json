@@ -1,0 +1,82 @@
+{
+  "clock": {
+    "source": "github:freedeck/clock",
+    "author": "Freedeck",
+    "title": "Clock",
+    "description": "A simple time-keeping plugin for Freedeck",
+    "version": "1.0.0",
+    "download": "https://content-dl.freedeck.app/hosted/clock.fdpackage"
+  },
+  "devutils": {
+    "source": "github:freedeck/devutils",
+    "author": "Freedeck Dev",
+    "title": "DevUtils",
+    "description": "Some developer utilities",
+    "version": "1.0.0",
+    "download": "https://content-dl.freedeck.app/hosted/devutils.fdpackage"
+  },
+  "easymidi": {
+    "source": "github:freedeck/easymidi",
+    "author": "Freedeck DEV",
+    "title": "EasyMidi",
+    "description": "A simple midi loopback and tiles for loopMIDI",
+    "version": "1.0.0",
+    "download": "https://content-dl.freedeck.app/hosted/easymidi.fdpackage"
+  },
+  "hafreedeck": {
+    "source": "github:freedeck/hafreedeck",
+    "author": "Freedeck",
+    "title": "HAFreedeck",
+    "description": "See the state of Home Assistant sensors in Freedeck.",
+    "version": "1.0.0",
+    "download": "https://content-dl.freedeck.app/hosted/hafreedeck.fdpackage"
+  },
+  "myexampletheme": {
+    "source": "github:freedeck/myexampletheme",
+    "author": "Freedeck",
+    "title": "My Example Theme Test",
+    "description": "This is a test .fdpackage but THEME!!!",
+    "version": "1.0.0",
+    "download": "https://content-dl.freedeck.app/hosted/myexampletheme.fdpackage"
+  },
+  "obscontrol": {
+    "source": "github:freedeck/obscontrol",
+    "author": "Freedeck",
+    "title": "OBS Control",
+    "description": "",
+    "version": "1.3.0",
+    "download": "https://content-dl.freedeck.app/hosted/obscontrol.fdpackage"
+  },
+  "myinstants": {
+    "source": "github:freedeck/myinstants",
+    "author": "",
+    "title": "MyInstants",
+    "description": "",
+    "version": "1.0.0",
+    "download": "https://content-dl.freedeck.app/hosted/myinstants.fdpackage"
+  },
+  "twitch": {
+    "source": "github:freedeck/twitch",
+    "author": "Freedeck",
+    "title": "Twitch",
+    "description": "See any streamer's live viewer-count!",
+    "version": "1.0.0",
+    "download": "https://content-dl.freedeck.app/hosted/twitch.fdpackage"
+  },
+  "wavelink": {
+    "source": "github:freedeck/wavelink",
+    "author": "Freedeck",
+    "title": "WaveLink",
+    "description": "Control your Elgato WaveLink devices from Freedeck",
+    "version": "1.0.0",
+    "download": "https://content-dl.freedeck.app/hosted/wavelink.fdpackage"
+  },
+  "testpluginv2": {
+    "source": "github:freedeck/testpluginv2",
+    "author": "Aria",
+    "title": "Testing PluginV2",
+    "description": "An example plugin using the PluginV2 class.",
+    "version": "1.0.0",
+    "download": "https://content-dl.freedeck.app/hosted/testpluginv2.fdpackage"
+  }
+}

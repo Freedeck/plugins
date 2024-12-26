@@ -1,5 +1,5 @@
 {
-  "name": "home-assistant-freedeck",
+  "name": "hafreedeck",
   "version": "1.0.0",
   "description": "See the state of Home Assistant sensors in Freedeck.",
   "main": "HAFreedeck.js",
