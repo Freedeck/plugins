@@ -1,5 +1,5 @@
 const handle = () => {
-	document.querySelectorAll('.button').forEach((button) => {
+	for(const button of document.querySelectorAll('.button')) {
 		if (button.getAttribute('data-interaction')) {
 			let dat = button.getAttribute('data-interaction');
 			dat = JSON.parse(dat);
@@ -15,7 +15,7 @@ const handle = () => {
 				txt.innerText = new Date(Date.now()).toLocaleTimeString('en-US', { hour12: false });
 			}
 		}
-	});
+	};
 };
 handle();
 universal.listenFor('page_change', () => {

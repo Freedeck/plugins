@@ -1,23 +1,44 @@
-const pluginsForOutput = [
-  "Clock",
-  "DevUtils",
-  "EasyMidi",
-  "HAFreedeck",
-  "MyExampleTheme",
-  "OBSControl",
-  "myinstants",
-  "Twitch",
-  "WaveLink",
-  "testpluginv2"
-]
+const {makePackage, Operations} = require('./src/lib/developerApi');
+const path = require('path');
+const allBuiltPlugins = [];
+
+console.log("INFO / STAGE 1 >> Building all plugins");
+
+emptyBuild("testpluginv2");
+emptyBuild("Clock");
+emptyBuild("MyExampleTheme");
+emptyBuild("WaveLink");
+emptyBuild("DevUtils");
+emptyBuild("HAFreedeck");
+emptyBuild("Twitch");
+build("myinstants",[Operations.INSTALL_DEPS_PRE_PACKAGE]);
+build("EasyMidi",[Operations.INSTALL_DEPS_PRE_PACKAGE]);
+build("OBSControl", [Operations.INSTALL_DEPS_PRE_PACKAGE]);
+
+
+function emptyBuild(packageId) {build(packageId,[])}
+
+function build(packageId, extra=[Operations.INSTALL_DEPS_PRE_PACKAGE]) {
+  allBuiltPlugins.push(packageId);
+  makePackage({
+    id: packageId,
+    src: path.resolve(`${packageId}.src`),
+    out: path.resolve("./plugins"),
+    extra: extra
+  });
+}
+
+
 
 const repository = {};
 const fs = require('fs');
-const path = require('path');
-for(const folder in pluginsForOutput){
-  const folderPath = path.resolve(__dirname, pluginsForOutput[folder] +".src");
+
+console.log("INFO / STAGE 2 >> Generating repository.json");
+
+for(const folder in allBuiltPlugins){
+  const folderPath = path.resolve(__dirname, allBuiltPlugins[folder] +".src");
   if(fs.existsSync(folderPath)){
-    console.log(`INFO >> Found plugin ${pluginsForOutput[folder]}`);
+    console.log(`INFO >> Found plugin ${allBuiltPlugins[folder]}`);
   }
   else{
     console.error(`ERROR >> Source directory ${folderPath} does not exist.`);
@@ -32,7 +53,7 @@ for(const folder in pluginsForOutput){
     title: freedeck.title,
     description,
     version,
-    download: `https://content-dl.freedeck.app/hosted/${name}.fdpackage`
+    download: `https://freedeck.github.io/plugins/plugins/${name}.fdpackage`
   }
 }
 

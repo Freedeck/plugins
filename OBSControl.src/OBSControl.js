@@ -10,6 +10,11 @@ class OBSControl extends Plugin {
     scenes;
     wasOutputs;
     wasInputs;
+    constructor() {
+        // With JS Hooks, you must keep the ID of your plugin the name of the source folder.
+        super('OBS Control', 'Freedeck', 'OBSControl', false);
+        this.version = '1.3.0';
+    }
 
     currentSceneTitle() {
         return new Promise((resolve, reject) => {
@@ -81,12 +86,6 @@ class OBSControl extends Plugin {
         _SIO = io;
     }
 
-    constructor() {
-        // With JS Hooks, you must keep the ID of your plugin the name of the source folder.
-        super('OBS Control', 'Freedeck', 'OBSControl', false);
-        this.version = '1.3.0';
-    }
-
     onInitialize() {
         console.log('Initialized OBSControl!')
         this.setJSServerHook("oc/server.js");
@@ -108,6 +107,7 @@ class OBSControl extends Plugin {
         } catch(err) {
             console.log("[OC] Could not connect.")
         }
+        
 
         // This is all you need to do. Freedeck will do all of the logic for you.
         return true;

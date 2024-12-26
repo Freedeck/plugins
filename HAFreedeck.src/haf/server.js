@@ -1,5 +1,5 @@
-universal.on("haf.statechange", (data) => {
-	universal.ui.visual.typeChangeText(data.wanted, data.state);
+universal.on("haf.statechange", (e) => {
+	for(const data of e) universal.ui.visual.typeChangeText(data.wanted, data.state);
 });
 
 universal.send("haf.forceupdate");

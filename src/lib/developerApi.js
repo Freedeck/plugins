@@ -109,7 +109,7 @@ function runPackage(filename) {
       gzip: true,
     })
     .then(() => {
-      const { main, name, freedeck } = require(path.resolve(tempDir, "_" + path.basename(file), "package.json"));
+      const { main, name, version, author, freedeck } = require(path.resolve(tempDir, "_" + path.basename(file), "package.json"));
       console.log(`${freedeck.title} INFO >> Extracted package to ${tempDir}`);
       if (!main) {
         console.error(`${freedeck.title} ERROR >> No main file specified in package.json.`);
@@ -119,7 +119,12 @@ function runPackage(filename) {
       package.class._usesAsar = false;
 
       console.log(`${freedeck.title} INFO >> Executing ${main}`);
-      package.exec();
+      const out = package.exec();
+      out.name = freedeck.title;
+      out.version = version;
+      out.author = author;
+      out.id = name;
+      out._fd_dropin();
     })
     .catch(console.error);
 }

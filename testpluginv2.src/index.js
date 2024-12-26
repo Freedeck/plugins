@@ -1,16 +1,9 @@
-const path = require("path");
-const {PluginV2, types, events, intents} = require(path.resolve("./src/classes/PluginV2"));
-const HookRef = require(path.resolve("./src/classes/HookRef"));
+const {Plugin, HookRef, types, events, intents} = require("@freedeck/api");
 
-let socketIoServer;
-class TestPluginV2 extends PluginV2 {
+class TestPluginV2 extends Plugin {
   setup() {
-    this.setName("Test Plugin V2");
-    this.setAuthor("Test Author");
-    this.setID("test-plugin-v2");
-    console.log(this)
-    
-    this.add(HookRef.types.client, "test-plugin-v2.js");
+    this.hidePopout();
+    this.add(HookRef.types.client, "test.js");
     this.requestIntent(intents.IO);
     this.requestIntent(intents.SOCKET);
     this.register({
@@ -19,14 +12,15 @@ class TestPluginV2 extends PluginV2 {
       templateData: {},
       renderType: types.button
     })
-
+    
     this.on(events.button, this.buttonPressed);
     this.on(events.connection, this.onConnected);
+    console.log(this)
   }
 
   onConnected({io, socket}) {
     console.log("Connected to Test Plugin V2");
-    socketIoServer = io;
+    console.log(this)
   }
 
   buttonPressed(interaction) {
