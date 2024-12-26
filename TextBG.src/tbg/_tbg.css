@@ -1,4 +1,4 @@
-._tbg_main {
+.textbg-display {
 	width: 100vw;
 	font-size: 0.75em;
 	height: 1.2em;
@@ -7,5 +7,6 @@
 	top: 0;
 	left: 0;
 	background-color: rgba(0,0,0, 0.25);
+	border-radius: 0 0 .5rem .5rem;
 	text-align: center;
 }
