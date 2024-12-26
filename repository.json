@@ -1,19 +1,19 @@
 {
   "testpluginv2": {
     "source": "github:freedeck/testpluginv2",
-    "author": "Aria",
+    "author": "Freedeck",
     "title": "Testing PluginV2",
-    "description": "An example plugin using the PluginV2 class.",
+    "description": "An example plugin using the PluginV2 spec.",
     "version": "1.0.0",
-    "download": "https://freedeck.github.io/plugins/testpluginv2.fdpackage"
+    "download": "https://freedeck.github.io/plugins/plugins/testpluginv2.fdpackage"
   },
   "clock": {
     "source": "github:freedeck/clock",
     "author": "Freedeck",
     "title": "Clock",
-    "description": "A simple time-keeping plugin for Freedeck",
+    "description": "A simple clock for your Freedeck.",
     "version": "1.2.1",
-    "download": "https://freedeck.github.io/plugins/clock.fdpackage"
+    "download": "https://freedeck.github.io/plugins/plugins/clock.fdpackage"
   },
   "myexampletheme": {
     "source": "github:freedeck/myexampletheme",
@@ -21,15 +21,15 @@
     "title": "My Example Theme Test",
     "description": "This is a test .fdpackage but THEME!!!",
     "version": "1.0.0",
-    "download": "https://freedeck.github.io/plugins/myexampletheme.fdpackage"
+    "download": "https://freedeck.github.io/plugins/plugins/myexampletheme.fdpackage"
   },
   "wavelink": {
     "source": "github:freedeck/wavelink",
     "author": "Freedeck",
     "title": "WaveLink",
-    "description": "Control your Elgato WaveLink devices from Freedeck",
-    "version": "1.0.0",
-    "download": "https://freedeck.github.io/plugins/wavelink.fdpackage"
+    "description": "Locally mute any source from your Elgato Wave Link device. More features coming soon.",
+    "version": "2.1.1",
+    "download": "https://freedeck.github.io/plugins/plugins/wavelink.fdpackage"
   },
   "devutils": {
     "source": "github:freedeck/devutils",
@@ -37,7 +37,7 @@
     "title": "DevUtils",
     "description": "Some developer utilities",
     "version": "1.0.0",
-    "download": "https://freedeck.github.io/plugins/devutils.fdpackage"
+    "download": "https://freedeck.github.io/plugins/plugins/devutils.fdpackage"
   },
   "hafreedeck": {
     "source": "github:freedeck/hafreedeck",
@@ -45,23 +45,39 @@
     "title": "HAFreedeck",
     "description": "See the state of Home Assistant sensors in Freedeck.",
     "version": "1.4.0",
-    "download": "https://freedeck.github.io/plugins/hafreedeck.fdpackage"
+    "download": "https://freedeck.github.io/plugins/plugins/hafreedeck.fdpackage"
+  },
+  "ytmd": {
+    "source": "github:freedeck/ytmd",
+    "author": "Freedeck",
+    "title": "YTMD",
+    "description": "Control your (v1.x) YTMD app from Freedeck!",
+    "version": "1.1.0",
+    "download": "https://freedeck.github.io/plugins/plugins/ytmd.fdpackage"
   },
   "twitch": {
     "source": "github:freedeck/twitch",
     "author": "Freedeck",
     "title": "Twitch",
-    "description": "See any streamer's live viewer-count!",
-    "version": "1.0.0",
-    "download": "https://freedeck.github.io/plugins/twitch.fdpackage"
+    "description": "See any Twitch streamer's view count.",
+    "version": "1.1.0",
+    "download": "https://freedeck.github.io/plugins/plugins/twitch.fdpackage"
+  },
+  "textbg": {
+    "source": "github:freedeck/textbg",
+    "author": "Freedeck",
+    "title": "TextBG",
+    "description": "Show any text on your Freedeck.",
+    "version": "1.1.0",
+    "download": "https://freedeck.github.io/plugins/plugins/textbg.fdpackage"
   },
   "myinstants": {
     "source": "github:freedeck/myinstants",
     "author": "",
     "title": "MyInstants",
-    "description": "",
+    "description": "Use MyInstants to play any sound you want without downloading it.",
     "version": "3.0.0",
-    "download": "https://freedeck.github.io/plugins/myinstants.fdpackage"
+    "download": "https://freedeck.github.io/plugins/plugins/myinstants.fdpackage"
   },
   "easymidi": {
     "source": "github:freedeck/easymidi",
@@ -69,14 +85,22 @@
     "title": "EasyMidi",
     "description": "A simple midi loopback and tiles for loopMIDI",
     "version": "1.0.0",
-    "download": "https://freedeck.github.io/plugins/easymidi.fdpackage"
+    "download": "https://freedeck.github.io/plugins/plugins/easymidi.fdpackage"
   },
   "obscontrol": {
     "source": "github:freedeck/obscontrol",
     "author": "Freedeck",
-    "title": "OBS Control",
-    "description": "",
+    "title": "OBSControl",
+    "description": "Control your OBS Studio setup right from your Freedeck.",
     "version": "1.3.0",
-    "download": "https://freedeck.github.io/plugins/obscontrol.fdpackage"
+    "download": "https://freedeck.github.io/plugins/plugins/obscontrol.fdpackage"
+  },
+  "stream-chat-monitor": {
+    "source": "github:freedeck/stream-chat-monitor",
+    "author": "Freedeck",
+    "title": "Stream Chat Monitor",
+    "description": "Get notifications on your Twitch, TikTok, and Kick chat all at once.",
+    "version": "1.1.0",
+    "download": "https://freedeck.github.io/plugins/plugins/stream-chat-monitor.fdpackage"
   }
 }

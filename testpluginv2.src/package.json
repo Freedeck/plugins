@@ -6,9 +6,9 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "Aria",
+  "author": "Freedeck",
   "license": "ISC",
-  "description": "An example plugin using the PluginV2 class.",
+  "description": "An example plugin using the PluginV2 spec.",
   "freedeck": {
     "title": "Testing PluginV2",
     "package": "plugin"

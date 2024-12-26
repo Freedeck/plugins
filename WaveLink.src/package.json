@@ -1,7 +1,7 @@
 {
   "name": "wavelink",
-  "version": "1.0.0",
-  "description": "Control your Elgato WaveLink devices from Freedeck",
+  "version": "2.1.1",
+  "description": "Locally mute any source from your Elgato Wave Link device. More features coming soon.",
   "main": "WL.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

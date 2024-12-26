@@ -1,7 +1,7 @@
 {
   "name": "obscontrol",
   "version": "1.3.0",
-  "description": "",
+  "description": "Control your OBS Studio setup right from your Freedeck.",
   "main": "OBSControl.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -14,7 +14,7 @@
   },
   "freedeck": {
     "package": "plugin",
-    "title": "OBS Control",
+    "title": "OBSControl",
     "disabled": false
   }
 }
