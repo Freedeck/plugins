@@ -50,6 +50,7 @@ for(const folder in allBuiltPlugins){
   const {freedeck, name, author, description, version} = require(path.resolve(folderPath, "package.json"));
 
   repository[name] = {
+    message: "This plugin could be unstable, as this is the built package straight from GitHub's latest commit.",
     source: `github:freedeck/${name}`,
     author,
     title: freedeck.title,
