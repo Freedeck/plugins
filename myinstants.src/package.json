@@ -1,8 +1,8 @@
 {
   "name": "myinstants",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Use MyInstants to play any sound you want without downloading it.",
-  "main": "config.js",
+  "main": "MyInstants.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

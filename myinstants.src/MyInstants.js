@@ -1,34 +1,60 @@
-const path = require("path");
-const Plugin = require(path.resolve("./src/classes/Plugin"));
+const {Plugin, types, events, intents} = require("@freedeck/api");
+const eventNames = require("@handlers/eventNames");
 const cheerio = require("cheerio");
+const cors_proxy = require("cors-anywhere");
 
-let corsServer, sockIo;
-
+let corsServer;
 class MIP extends Plugin {
-  constructor() {
-    super("MyInstants", "Freedeck", "myinstants", false);
-    this.version = "3.0.0";
-  }
+  setup() {
+    this.hidePopout();
+    
+    this.requestIntent(intents.SOCKET);
+    this.requestIntent(intents.IO);
+    // Every time a user connects, this.io gets refreshed with the current server.
+    
+    this.addView("MyInstants Sound", "myinstants");
 
-  setSocket(sio) {
-    sockIo = sio;
-  }
-
-  onInitialize() {
-    console.log("Initialized MIPlugin");
-    this.setJSSocketHook("mi/socket.js");
-    this.registerNewType("MyInstants Sound", "mi.sound", {
-      url: "https://www.myinstants.com/en/instant/vine-boom-sound-70972/",
+    this.register({
+      display: "MyInstants Sound", 
+      type: "mi.sound", 
+      hidden: true,
+      templateData: {
+        url: "https://www.myinstants.com/en/instant/vine-boom-sound-70972/",
+      },
+      renderType: types.button
     });
-    return true;
+    
+    this.on(events.connection, ({socket, io}) => {
+      socket.on("mi:search", ({query}) => {
+        fetch(`http://localhost:5576/myinstants.com/en/search/?name=${encodeURIComponent(query)}`)
+          .then((res) => res.text())
+          .then((body) => {
+            const $ = cheerio.load(body);
+            const results = [];
+            $(".instant").each((i, element) => {
+              const btn = $(element).find('.small-button');
+              const title = btn.attr('title') || 'N/A';
+              const onclick = btn.attr('onclick') || 'N/A';
+              const soundPageLink = $(element).find('.instant-link').attr('href') || 'N/A';
+              const newPath = 'https://www.myinstants.com' + soundPageLink;
+              results.push({ title, newPath, onclick });
+            });
+            console.log(results);
+            io.emit("mi:results", results);
+          });
+      })
+    })
+
+    this.on(events.button, this.buttonPressed);
   }
 
-  async onButton(interaction) {
-    if(!sockIo) return;
+  async buttonPressed({interaction, io}) {
     let url = interaction.data.url;
     if (!url) return;
-	interaction.data = {path: '', file: ''}
+    interaction.data = {path: '', file: ''}
     interaction.type = 'fd.sound'; // convert to sound so freedeck processes it properly
+    delete interaction.plugin;
+    delete interaction.renderType;
     const response = await fetch(url);
     const body = await response.text();
     const $ = cheerio.load(body);
@@ -42,25 +68,20 @@ class MIP extends Plugin {
       const file = url.split("/").slice(3).join("/");
       respondeArray.path = path;
       respondeArray.file = file;
+      interaction.data.path = respondeArray.path;
+      interaction.data.file = respondeArray.file;
     });
-    interaction.data.path = respondeArray.path;
-    interaction.data.file = respondeArray.file;
-    sockIo.emit("K", interaction);
+    io.emit(eventNames.keypress, interaction);
   }
 
   async onStopping() {
     console.log("Stopping MIPlugin...");
-
     try {
-
-      // Close CORS proxy connections if possible
       corsServer.closeAllConnections();
       await new Promise((resolve, reject) => {
         corsServer.close((err) => (err ? reject(err) : resolve()));
       });
-
       await new Promise((resolve) => setTimeout(resolve, 2000));
-
       console.log("CORS proxy server stopped.");
     } catch (err) {
       console.error("Error stopping servers:", err);
@@ -100,11 +121,10 @@ const start = async () => {
         const host = process.env.HOST || "0.0.0.0";
         const port = process.env.PORT || 5576;
 
-        const cors_proxy = require("cors-anywhere");
         corsServer = cors_proxy.createServer({
-        originWhitelist: [], // Allow all origins
+          originWhitelist: [], // Allow all origins
         }).listen(port, host, () => {
-        console.log("MiAPI:CORS initialized");
+          console.log("MiAPI:CORS initialized");
         });
     } else {
         // dispose of our unused server
@@ -117,9 +137,11 @@ const start = async () => {
   }
 };
 
-start();
 
 module.exports = {
-  exec: () => new MIP(),
+  exec: () => {
+    start();
+    return new MIP();
+  },
   class: MIP,
 };
