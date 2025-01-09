@@ -18,7 +18,9 @@ let currentInteraction = null;
 window.play = (a, b, c, ...extra) => {
   return `https://myinstants.com${a}`;
 }
-function search() {
+function search(i) {
+
+  currentInteraction = i || currentInteraction;
   return new Promise((resolve, reject) => {
     setTileData("_query", searchBar.value, currentInteraction);
     universal.send("mi:search", { query: searchBar.value });
@@ -56,12 +58,12 @@ window.myInstantsSearch = search;
 
 universal.listenFor("editTile", (e) => {
   if(e.plugin !== "myinstants") return;
+  currentInteraction = e;
   if(e.data.url && !e.data._query) {
     e.data._query = e.data.url;
   }
-  currentInteraction = e;
   searchBar.value = e.data._query || "";
-  search().then(() => {
+  search(e).then(() => {
     if(currentInteraction.data.url) {
       for(const e of searchResults.querySelectorAll(".item")) e.classList.remove("selected");
       const selected = searchResults.querySelector(`[data-url="${currentInteraction.data.url}"]`);
