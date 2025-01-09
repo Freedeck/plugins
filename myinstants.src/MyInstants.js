@@ -26,6 +26,27 @@ class MIP extends Plugin {
     
     this.on(events.connection, ({socket, io}) => {
       socket.on("mi:search", ({query}) => {
+        if(query.startsWith("https://www.myinstants.com") || query.startsWith("https://myinstants.com")) {
+          (async () => {
+            const response = await fetch(query);
+            const body = await response.text();
+            const $ = cheerio.load(body);
+        
+            const respondeArray = {};
+            $("#instant-page-button-element").each((i, elem) => {
+              const btn = $(elem);
+              const url = btn.attr("data-url");
+              const slashes = url.split("/");
+              slashes.pop();
+              io.emit("mi:results", [{
+                title: btn.attr("title") || 'N/A',
+                newPath: query,
+                onclick: btn.attr("onclick") || 'load("Error",1,1)'
+              }]);
+            });
+          })();
+          return;
+        }
         fetch(`http://localhost:5576/myinstants.com/en/search/?name=${encodeURIComponent(query)}`)
           .then((res) => res.text())
           .then((body) => {

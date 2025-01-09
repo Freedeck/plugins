@@ -55,6 +55,10 @@ function search() {
 window.myInstantsSearch = search;
 
 universal.listenFor("editTile", (e) => {
+  if(e.plugin !== "myinstants") return;
+  if(e.data.url && !e.data._query) {
+    e.data._query = e.data.url;
+  }
   currentInteraction = e;
   searchBar.value = e.data._query || "";
   search().then(() => {
