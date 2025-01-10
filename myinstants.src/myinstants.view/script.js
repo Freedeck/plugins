@@ -19,10 +19,9 @@ window.play = (a, b, c, ...extra) => {
   return `https://myinstants.com${a}`;
 }
 function search(i) {
-
-  currentInteraction = i || currentInteraction;
+  currentInteraction = i;
   return new Promise((resolve, reject) => {
-    setTileData("_query", searchBar.value, currentInteraction);
+    setTileData("_query", searchBar.value, i);
     universal.send("mi:search", { query: searchBar.value });
     universal.once("mi:results", (e) => {
       searchResults.innerHTML = "";

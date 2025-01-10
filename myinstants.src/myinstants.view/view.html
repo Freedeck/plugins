@@ -3,7 +3,7 @@
 </center>
 <div class="myview search-bar">
   <input type="text" id="myi-search" placeholder="Search for sounds" />
-  <button onclick="window.myInstantsSearch()">Search</button>
+  <button onclick="window.myInstantsSearch(JSON.parse(document.querySelector('#editor-btn').getAttribute('data-interaction')))">Search</button>
 </div>
 
 <div class="myview-search-list">
