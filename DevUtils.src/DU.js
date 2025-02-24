@@ -1,39 +1,45 @@
+const {Plugin, HookRef, intents} = require("@freedeck/api");
+
 const path = require("path");
-const Plugin = require(path.resolve("./src/classes/Plugin"));
-const eventNames = require(path.resolve("./src/handlers/eventNames.js"));
-const { compileWebpack } = require(path.resolve("./src/webpack"));
 
-let ioserver = null;
+const evtNameLocation = path.resolve("./src/handlers/eventNames.js");
+const webpackLocation = path.resolve("./src/webpack.js");
+
+const eventNames = require(evtNameLocation);
+const { compileWebpack } = require(webpackLocation);
+
 class DevUtils extends Plugin {
-	wlc;
-	constructor() {
-		super("Developer Utilities", "Freedeck", "DevUtils", false);
-		this.version = "2.0.0";
-	}
+	setup() {
+		this.requestIntent(intents.IO);
 
-	set(inst) {
-		ioserver = inst;
-	}
+		this.add(HookRef.types.server, 'duhooks/server.js');
+		this.add(HookRef.types.socket, 'duhooks/socket.js');
+		
+		this.register({
+			display: "Reload All Connected Sockets",
+			type: "du.rl"
+		});
+		
+		this.register({
+			display: "Recompile Webpack Bundles",
+			type: "du.rc"
+		});
 
-	onInitialize() {
+		this.addView("Editor Custom View Test", "editor_test");
+
 		console.log("Initialized DevUtils plugin");
-		this.setJSSocketHook("Socket.js");
-		this.setJSServerHook("server.js");
-		this.registerNewType("Reload All Clients", "du.rl");
-		this.registerNewType("Recompile Webpack Bundles", "du.rc");
-		this.addView("Editor tests bttuon", "editor_test");
 		return true;
 	}
 
 	onButton(inter) {
-		if (!ioserver) {
+		if (!this.io) {
 			this.sendNotification("No connection to the server");
 			return;
 		}
 		if (inter.type == "du.rl") {
-			ioserver.emit(eventNames.default.reload);
+			this.io.emit(eventNames.default.reload);
 		} else if (inter.type == "du.rc") {
-			ioserver.emit(eventNames.default.recompile);
+			this.io.emit(eventNames.default.recompile);
 			compileWebpack().catch((err) => console.error(err));
 		}
 	}
