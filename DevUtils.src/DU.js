@@ -13,7 +13,6 @@ class DevUtils extends Plugin {
 		this.requestIntent(intents.IO);
 
 		this.add(HookRef.types.server, 'duhooks/server.js');
-		this.add(HookRef.types.socket, 'duhooks/socket.js');
 		
 		this.register({
 			display: "Reload All Connected Sockets",

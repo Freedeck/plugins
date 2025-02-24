@@ -1,23 +1,18 @@
-const path = require("path");
-const Plugin = require(path.resolve("./src/classes/Plugin"));
-let _SIO, _SIOForceListener;
+const { Plugin, HookRef, types, events, intents } = require("@freedeck/api");
+
 const stateCache = {};
 class HAF extends Plugin {
   token = "";
   statesToTrack = ["my.room.temperature"];
   statesCount = 3;
   url = "http://localhost:8123/";
-  constructor() {
-    // With JS Hooks, you must keep the ID of your plugin the name of the source folder.
-    super("Home Assistant Freedeck", "Freedeck", "HAFreedeck", false);
-    this.version = "1.4.0";
-  }
 
-  onInitialize() {
+  setup() {
     console.log("Initialized HomeAssistant Freedeck.");
-    this.setJSServerHook("haf/server.js");
-    this.setJSClientHook("haf/server.js");
-    this.setJSSocketHook("haf/socket.js");
+    this.add(HookRef.types.server, "haf/server.js");
+    this.add(HookRef.types.client, "haf/server.js");
+
+    this.requestIntent(intents.IO);
 
     const token = this.getFromSaveData("token");
     if (token == undefined || token == "") {
@@ -25,31 +20,35 @@ class HAF extends Plugin {
       this.setToSaveData("token", "");
       return false;
     }
+
     const url = this.getFromSaveData("url");
-    if (url == undefined || url == "http://localhost:8123/") {
+    if (url == undefined) {
       console.log(
         "No URL found, please enter your Home Assistant URL in the settings."
       );
       this.setToSaveData("url", "http://localhost:8123/");
       return false;
     }
+
     const statesToTrack = this.getFromSaveData("statesToTrack");
     if (
       statesToTrack == undefined ||
-      statesToTrack == ["my.room.temperature"]
+      statesToTrack == ["change.my.room.temperature"]
     ) {
       console.log(
         "No states to track found, please enter the states you want to track in the settings."
       );
-      this.setToSaveData("statesToTrack", ["my.room.temperature"]);
+      this.setToSaveData("statesToTrack", ["change.my.room.temperature"]);
       return false;
     }
+
     let isSilent = this.getFromSaveData("silent");
     if (isSilent == undefined || isSilent == "") {
       console.log("No saved data found for silent mode, enabling.");
       this.setToSaveData("silent", true);
       isSilent = true;
     }
+
     let statesCount = this.getFromSaveData("statesCount");
     if (statesCount == undefined || statesCount == "") {
       console.log("No saved data found for states count, setting to 3.");
@@ -63,6 +62,7 @@ class HAF extends Plugin {
     }
 
     console.log("Connecting to Home Assistant...");
+
     fetch(url + "api/", {
       headers: {
         Authorization: "Bearer " + token,
@@ -79,9 +79,17 @@ class HAF extends Plugin {
         );
       });
 
-    this.registerNewType("Force Update", "haf.forceupdate", {}, "button");
+    this.register({
+      display: "Force Update",
+      type: "haf.forceupdate",
+    });
+    
     statesToTrack.forEach((state) => {
-      this.registerNewType(state, state, {}, "text");
+      this.register({
+        display: state,
+        type: state,
+        renderType: types.text,
+      });
       stateCache[state] = null;
     });
 
@@ -91,30 +99,29 @@ class HAF extends Plugin {
       this.stateLoop(token, url, statesToTrack, isSilent);
     }, this.getFromSaveData("updateInterval") || 1000);
 
-    return true;
-  }
-
-  setSio(s, sio) {
-    _SIO = sio;
-    _SIOForceListener = _SIO.on("haf.forceupdate", () => {
-      for (const state in stateCache) {
-        const data = stateCache[state];
-        if (!data) {
-          _SIO.emit("haf.statechange", {
-            wanted: state,
-            state: "Failed to query state.",
+    this.onButton(events.connection, ({ socket, io }) => {
+      io.on("haf.forceupdate", () => {
+        for (const state in stateCache) {
+          const data = stateCache[state];
+          if (!data) {
+            this.io.emit("haf.statechange", {
+              wanted: state,
+              state: "Failed to query state.",
+            });
+          }
+          this.io.emit("haf.statechange", {
+            wanted: data.entity_id,
+            state:
+              data.attributes.friendly_name +
+              ": " +
+              data.state +
+              data.attributes.unit_of_measurement,
           });
         }
-        _SIO.emit("haf.statechange", {
-          wanted: data.entity_id,
-          state:
-            data.attributes.friendly_name +
-            ": " +
-            data.state +
-            data.attributes.unit_of_measurement,
-        });
-      }
+      });
     });
+
+    return true;
   }
 
   onButton(interaction) {
@@ -125,15 +132,15 @@ class HAF extends Plugin {
         this.getFromSaveData("statesToTrack"),
         true
       );
-      if (_SIO != null) {
+      if (this.io != null) {
         const data = stateCache[interaction.type];
         if (data == null) {
-          _SIO.emit("haf.statechange", {
+          this.io.emit("haf.statechange", {
             wanted: interaction.type,
             state: "Failed to query state.",
           });
         }
-        _SIO.emit("haf.statechange", {
+        this.io.emit("haf.statechange", {
           wanted: data.entity_id,
           state:
             data.attributes.friendly_name +
@@ -184,7 +191,7 @@ class HAF extends Plugin {
       console.error("Error in stateLoop:", err);
     }
 
-    if (_SIO != null) _SIO.emit("haf.statechange", output);
+    if (this.io != null) this.io.emit("haf.statechange", output);
   }
 
   stateChange(changeData) {}
