@@ -73,7 +73,7 @@ function makePackage(opt = {}) {
   gzipDirectory(folderPath, outFile)
     .then(() => {
       console.log(freedeck.title +" INFO >> Created package at", outFile);
-      fs.renameSync(outFile, path.resolve(opt.out, `${opt.id}.fdpackage`));
+      fs.renameSync(outFile, path.resolve(opt.out, `${opt.id.toLowerCase()}.fdpackage`));
 
       if (opt.extra.includes(Operations.INSTALL_DEPS_POST_PACKAGE)) {
         execSync("npm i", {
