@@ -1,6 +1,6 @@
 {
   "name": "obscontrol",
-  "version": "1.3.0",
+  "version": "2.0.0",
   "description": "Control your OBS Studio setup right from your Freedeck.",
   "main": "OBSControl.js",
   "scripts": {
@@ -10,11 +10,10 @@
   "author": "Freedeck",
   "license": "ISC",
   "dependencies": {
-    "obs-websocket-js": "5.0.6"
+    "obs-websocket-js": "^5.0.6"
   },
   "freedeck": {
-    "package": "plugin",
-    "title": "OBSControl",
-    "disabled": false
+    "title": "OBS Control",
+    "package": "plugin"
   }
 }

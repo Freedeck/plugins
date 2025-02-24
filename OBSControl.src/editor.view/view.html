@@ -1,0 +1,69 @@
+<h2>OBSControl</h2>
+<div class="obswswarn" id="obsws-auth">
+    <h2>Authentication Required</h2>
+    <p>Before you can use this plugin, you need to authenticate with your OBS instance.</p>
+    <input type="text" disabled placeholder="Server Host:Port" value="localhost:4455" id="obsserver">
+    <small>The server host will be changable at a later date.</small>
+    <input type="password" placeholder="OBS Password" id="obspswd">
+    <button id="obsws-auth-button">Authenticate</button>
+</div>
+<div id="obsws-dash">
+  <div class="options">
+    <div class="option">
+      <h2>Recording</h2>
+      <div class="flex-wrap-r">
+        <button id="obsws-pick-time-recording">Recording Time</button>
+        <button id="obsws-pick-start-recording">Start Recording</button>
+        <button id="obsws-pick-stop-recording">Stop Recording</button>
+        <button id="obsws-pick-toggle-recording">Toggle Recording</button>
+        <button id="obsws-pick-toggle-pause">Toggle Pause</button>
+      </div>
+    </div>
+    <div class="option">
+      <h2>Streaming</h2>
+      <div class="flex-wrap-r">
+        <button id="obsws-pick-time-streaming">Streaming Time</button>
+        <button id="obsws-pick-start-streaming">Start Streaming</button>
+        <button id="obsws-pick-stop-streaming">Stop Streaming</button>
+        <button id="obsws-pick-toggle-streaming">Toggle Streaming</button>
+      </div>
+    </div>
+    <div class="option">
+      <h2>Replay Buffer</h2>
+      <div class="flex-wrap-r">
+        <button id="obsws-pick-start-rb">Start Replay Buffer</button>
+        <button id="obsws-pick-save-rb">Save Replay Buffer</button>
+        <button id="obsws-pick-stop-rb">Stop Replay Buffer</button>
+        <button id="obsws-pick-toggle-rb">Toggle Replay Buffer</button>
+      </div>
+    </div>
+    <div class="option">
+      <h2>Scenes</h2>
+      <div class="scene-list flex-wrap-r">
+        <button id="obws-pick-currentscene">Current Scene Text</button>
+      </div>
+    </div>
+    <div class="option" style="display:none;">
+      <h2>Sources</h2>
+      <div class="source-list flex-wrap-r"></div>
+    </div>
+    <div class="option">
+      <h2>Inputs</h2>
+      <div class="audio-list flex-wrap-r"></div>
+      </div>
+  </div>
+</div>
+
+
+<style>
+  .obswswarn {
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 1.5rem;
+  }
+  #obsws-auth {
+    display: block;
+  }
+  #obsws-dash {
+    display: none;
+  }
+</style>

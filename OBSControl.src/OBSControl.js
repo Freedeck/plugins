@@ -1,20 +1,14 @@
-const path = require("path");
-const Plugin = require(path.resolve('./src/classes/Plugin'));
+const {Plugin, HookRef, types, events, intents} = require("@freedeck/api");
 const { default: OBSWebSocket } = require('obs-websocket-js');
 
 const obs = new OBSWebSocket();
-let _SS = null;
-let _SIO = null;
+let _timer = null;
 class OBSControl extends Plugin {
     currentScene;
     scenes;
     wasOutputs;
     wasInputs;
-    constructor() {
-        // With JS Hooks, you must keep the ID of your plugin the name of the source folder.
-        super('OBS Control', 'Freedeck', 'OBSControl', false);
-        this.version = '1.3.0';
-    }
+    currentDataPacket;
 
     currentSceneTitle() {
         return new Promise((resolve, reject) => {
@@ -80,63 +74,225 @@ class OBSControl extends Plugin {
         }) 
     }
 
-    SockyInterop(socket, io) {
-        console.log('Loaded Socket Interop for OBSControl!')
-        _SS = socket;
-        _SIO = io;
+    setInDataPacket(key, value) {
+        if(!this.currentDataPacket) this.currentDataPacket = {};
+        if(!this.currentDataPacket[key]) this.currentDataPacket[key] = "";
+        this.currentDataPacket[key] = value;
     }
 
-    onInitialize() {
+    addToDataPacket(key, ...value) {
+        if(!this.currentDataPacket) this.currentDataPacket = {};
+        if(!this.currentDataPacket[key]) this.currentDataPacket[key] = [];
+        this.currentDataPacket[key].push(...value);
+    }
+
+    SockyInterop(socket, io) {
+        console.log('Registered socket.io events for OBSControl');
+        socket.on('oc_vo', (idata) => {
+            this.setInDataPacket('oc_vo', []);
+            this.volumeOf(idata.name, idata.uuid).then((data) => {
+                this.addToDataPacket('oc_vo', {...data, uuid: idata.uuid})
+            })
+        })
+        socket.on('oc_ms', (idata) => {
+            this.setInDataPacket('oc_ms', []);
+            this.muteStatus(idata.name, idata.uuid).then((data) => {
+                this.addToDataPacket('oc_ms', {...data, uuid: idata.uuid})
+            })
+        })
+        socket.on('oc_src_vis', (idata) => {
+            this.setInDataPacket('oc_src_vis', []);
+            this.visibility(idata.Scene, idata.Source).then((data) => {
+                this.addToDataPacket('oc_src_vis', {...data, uuid: idata.uuid})
+            })
+        })
+        this.MAKESUREPACKETISSENTTO(io);
+    }
+
+    MAKESUREPACKETISSENTTO(socket, count=5) {
+        let introCounter = 0;
+        let introduction = setInterval(() => {
+            socket.emit("oc_data", this.currentDataPacket);
+            if(introCounter++ > count) clearInterval(introduction)
+        },500);
+    }
+
+    setup() {
         console.log('Initialized OBSControl!')
-        this.setJSServerHook("oc/server.js");
-        this.setJSClientHook("oc/server.js");
-        this.setJSSocketHook("oc/socket.js");
+        this.currentDataPacket = {};
+        this.hidePopout();
+
+        this.requestIntent(intents.SOCKET);
+        this.requestIntent(intents.IO);
+
+        this.addView("OBS Control", "editor");
+
+        this.add(HookRef.types.server, 'oc/server.js');
+        this.add(HookRef.types.client, 'oc/server.js');
 
         let pswd = this.getFromSaveData('password');
         if (!pswd) {
             this.setToSaveData('password', 'password');
         }
-        if(!this.deregisterType) {
-            console.log('[OC] You\'re running Freedeck on a version below v6.0.0-ob7!')
-            console.log('[OC] You will only notice the "Authenticate OBS" tile type not being removed. The plugin will still work as normal.');
-        }
-        this.registerNewType('Reconnect to OBS', 'obs.cf', {}, 'button');
-        this.registerNewType('Authenticate OBS', 'obs.auth', {}, 'button');
+
+        this.register({
+            display: "Reconnect to OBS",
+            type: "obs.cf",
+            hidden: true,
+            templateData: {
+                password: "change-me"
+            }
+        })
         try {
             this.tryConnecting();
         } catch(err) {
             console.log("[OC] Could not connect.")
         }
+
+        this.on(events.connection, ({socket, io}) => {
+            if(_timer) clearInterval(_timer);
+            _timer = setInterval(() => {
+                if(this.io) {
+                    this.io.emit('oc_data', this.currentDataPacket);
+                }
+            },500);
+            this.SockyInterop(socket, io)
+        });
         
 
         // This is all you need to do. Freedeck will do all of the logic for you.
         return true;
     }
 
+    _packetUpdateLoop;
     tryConnecting() {
         let pswd = this.getFromSaveData('password');
         obs.connect('ws://localhost:4455', pswd).then((info) => {
+            this.currentDataPacket = {};
             console.log('[OBSControl] Connected and identified. OBS WS: v' + info.obsWebSocketVersion)
-            if(this.deregisterType) this.deregisterType('obs.auth');
-            this.registerNewType('Current Scene', 'obs.cs', {}, 'text');
-            this.registerNewType('Current Scene', 'obs.cs', {}, 'text');
+
+            this.deregisterAllTypes();
+
+            this.register({
+                display: "Reconnect to OBS",
+                type: "obs.cf",
+                hidden: true,
+                templateData: {
+                    password: "change-me"
+                }
+            })
+
+            this.register({
+                hidden: true,
+                display: "Current Scene",
+                type: "obs.cs",
+                renderType: types.text
+            })
+
+            this.register({
+                display: "Source Visibility",
+                type: "obs.src.vis",
+                templateData: {
+                    Scene: 'Change me!',
+                    Source: 'Change me!'
+                }
+            })
+
+            this.register({
+                hidden: true,
+                display: "Start Recording",
+                type: "obs.rec.start",
+            })
             
-            this.registerNewType('Source Visibility', 'obs.src.vis', {Scene: 'Change me!', Source:'Change me!'}, 'button');
+            this.register({
+                hidden: true,
+                display: "Stop Recording",
+                type: "obs.rec.stop",
+            })
+
+            this.register({
+                hidden: true,
+                display: "Recording Time",
+                type: "obs.rec.time",
+                renderType: types.text
+            })
             
-            this.registerNewType('Start Recording', 'obs.rec.start', {}, 'button');
-            this.registerNewType('Stop Recording', 'obs.rec.stop', {}, 'button');
-            this.registerNewType('Toggle Start/Stop Recording', 'obs.rec.toggle', {}, 'button');
-            this.registerNewType('Toggle Pause/Unpause', 'obs.rec.toggle_pause', {}, 'button');
-            
-            this.registerNewType('Start Streaming', 'obs.str.start', {}, 'button');
-            this.registerNewType('Stop Streaming', 'obs.str.stop', {}, 'button');
-            this.registerNewType('Toggle Start/Stop Streaming', 'obs.str.toggle', {}, 'button');
-            
-            this.registerNewType('Start Replay Buffer', 'obs.rb.start')
-            this.registerNewType('Save from Replay Buffer', 'obs.rb.save')
-            this.registerNewType('Stop Replay Buffer', 'obs.rb.stop')
-            this.registerNewType('Toggle Replay Buffer', 'obs.rb.toggle')
-            
+            this.register({
+                hidden: true,
+                display: "Toggle Start/Stop Recording",
+                type: "obs.rec.toggle",
+            })
+
+            this.register({
+                hidden: true,
+                display: "Toggle Pause/Unpause",
+                type: "obs.rec.toggle_pause",
+            })
+
+            this.register({
+                hidden: true,
+                display: "Streaming Time",
+                type: "obs.rec.time",
+                renderType: types.text
+            })
+
+            this.register({
+                hidden: true,
+                display: "Start Streaming",
+                type: "obs.str.start",
+            })
+
+            this.register({
+                hidden: true,
+                display: "Stop Streaming",
+                type: "obs.str.stop",
+            })
+
+            this.register({
+                hidden: true,
+                display: "Toggle Start/Stop Streaming",
+                type: "obs.str.toggle",
+            })
+
+            this.register({
+                hidden: true,
+                display: "Start Replay Buffer",
+                type: "obs.rb.start",
+            })
+
+            this.register({
+                hidden: true,
+                display: "Save from Replay Buffer",
+                type: "obs.rb.save",
+            })
+
+            this.register({
+                hidden: true,
+                display: "Stop Replay Buffer",
+                type: "obs.rb.stop",
+            })
+
+            this.register({
+                hidden: true,
+                display: "Toggle Replay Buffer",
+                type: "obs.rb.toggle",
+            })
+
+            if(this.io && this.io.emit) this.io.emit('dR')
+
+            this._packetUpdateLoop = setInterval(() => {
+                    this.setInDataPacket('oc_cs', this.currentScene);
+                    this.recordStatus().then((data) => {
+                        this.setInDataPacket('oc_rec', data);
+                    })
+                    this.streamStatus().then((data) => {
+                        this.setInDataPacket('oc_str', data);
+                    })
+                    this.replayBufferStatus().then((data) => {
+                        this.setInDataPacket('oc_rb', data);
+                    })
+            }, 499);
+
             obs.call('GetCurrentProgramScene').then((data) => {
                 this.currentScene = data.sceneName;
             }).catch((err) => {
@@ -144,7 +300,11 @@ class OBSControl extends Plugin {
             })
             obs.call('GetSceneList').then((data) => {
                 data.scenes.forEach((scene) => {
-                    this.registerNewType('Switch to ' + scene.sceneName, 'obs.ss.' + scene.sceneName);
+                    this.register({
+                        hidden: true,
+                        display: 'Switch to ' + scene.sceneName, 
+                        type: 'obs.ss.' + scene.sceneName
+                    });
                 });
             }).catch((err) => {
                 console.error('Error while getting the scene list', err);
@@ -152,8 +312,19 @@ class OBSControl extends Plugin {
             obs.call('GetInputList', {inputKind: 'wasapi_output_capture'}).then((data) => {
                 this.wasOutputs = data.inputs;
                 data.inputs.forEach((input) => {
-                    this.registerNewType('Volume of ' + input.inputName, 'obs.v.' + input.inputUuid, {name:input.inputName, value:0,format:'dB',min: -100, max: 25, direction: 'vertical'}, 'slider');
-                    this.registerNewType('Mute ' + input.inputName, 'obs.m.' + input.inputUuid, {name:input.inputName}, 'button');
+                    this.register({
+                        hidden: true,
+                        display: 'Volume of ' + input.inputName, 
+                        type: 'obs.v.' + input.inputUuid, 
+                        templateData: {name:input.inputName, value:0,format:'dB',min: -100, max: 25, direction: 'vertical'},
+                        renderType: types.slider
+                    });
+                    this.register({
+                        hidden: true,
+                        display: 'Mute ' + input.inputName,
+                        type: 'obs.m.' + input.inputUuid,
+                        templateData: {name:input.inputName},
+                    });
                 })
             }).catch((err) => {
                 console.error('Error while getting output (WASAPI OUT) capture list', err);
@@ -161,55 +332,61 @@ class OBSControl extends Plugin {
             obs.call('GetInputList', {inputKind: 'wasapi_input_capture'}).then((data) => {
                 this.wasInputs = data.inputs;
                 data.inputs.forEach((input) => {
-                    this.registerNewType('Volume of ' + input.inputName, 'obs.v.' + input.inputUuid, {name:input.inputName, value:0,format:'dB', min: -100, max: 25, direction: 'vertical'}, 'slider');
-                    this.registerNewType('Mute ' + input.inputName, 'obs.m.' + input.inputUuid, {name:input.inputName}, 'button');
+                    this.register({
+                        hidden: true,
+                        display: 'Volume of ' + input.inputName, 
+                        type: 'obs.v.' + input.inputUuid, 
+                        templateData: {name:input.inputName, value:0,format:'dB', min: -100, max: 25, direction: 'vertical'},
+                        renderType: types.slider
+                    });
+                    this.register({
+                        hidden: true,
+                        display: 'Mute ' + input.inputName,
+                        type: 'obs.m.' + input.inputUuid,
+                        templateData: {name:input.inputName},
+                    });
                 })
             }).catch((err) => {
                 console.error('Error while getting output (WASAPI IN) capture list', err);
             })
             obs.addListener('RecordStateChanged', (data) => {
                 console.log(data.outputActive ? "Recording Started" : "Recording Stopped")
-                _SIO.emit('oc_rec', data);
+                this.setInDataPacket('oc_rec', data);
             })
             obs.addListener('StreamStateChanged', (data) => {
                 console.log(data.outputActive ? "Stream started" : "Stream stopped");
-                _SIO.emit("oc_str", data);
+                this.setInDataPacket('oc_str', data);
             })
             obs.addListener('CurrentProgramSceneChanged', (data) => {
                 console.log('Current scene changed to', data.sceneName)
                 this.currentScene = data.sceneName;
-                _SIO.emit('oc_cs', data.sceneName);
+                this.setInDataPacket('oc_cs', data.sceneName);
             });
             obs.addListener('InputVolumeChanged', (data) => {
-                if(_SIO == false) return;
                 console.log('Volume of input', data.inputName, 'changed to', data.inputVolumeDb)
-                _SIO.emit('oc_vo', {...data, uuid: data.inputUuid});
+                this.addToDataPacket("oc_vo", {...data, uuid:data.inputUuid});
             })
             obs.addListener('ReplayBufferSaved', (data) => {
-                if(_SIO == false) return;
                 console.log('Replay buffer saved!');
                 this.pushNotification('Replay buffer saved!');
             });
             obs.addListener('InputMuteStateChanged', (data) => {
-                if(_SIO == false) return;
                 console.log('Mute state of input', data.inputName, 'changed to', data.inputMuted);
-                _SIO.emit('oc_ms', {...data, uuid: data.inputUuid});
+                this.addToDataPacket("oc_ms", {...data, uuid:data.inputUuid});
             });
             obs.addListener('SceneItemEnableStateChanged', (data) => {
-                if(_SIO == false) return;
                 console.log('Visibility of input', data.sceneItemId, 'changed to', data.sceneItemEnabled);
                 this.whoIsSceneItem(data.sceneName, data.sceneItemId).then((source) => {
-                    _SIO.emit('oc_src_vis', {...data, ...source});
+                    this.addToDataPacket("oc_src_vis", {...data, ...source});
                 });
             });
             obs.addListener('ConnectionClosed', (e) => {
                 console.error('Connection closed', e);
-                _SIO = false;
-                _SS = false;
                 this.pushNotification('Lost connection to OBS! Please reconnect by pressing the "Reconnect to OBS" Tile.');
             })
         }, (e) => {
             console.error('[OC] Could not connect.', e)
+            this.pushNotification('Could not connect to OBS. Please check your connection settings.');
         });
     }
 
@@ -266,11 +443,8 @@ class OBSControl extends Plugin {
 
     onButton(interaction) {
         if(interaction.type == 'obs.cf') {
+            this.setToSaveData('password', interaction.data.password);
             this.tryConnecting();
-            _SIO.emit('dR')
-        }
-        if(interaction.type == 'obs.auth') {
-            this.pushNotification('Please edit this tile, and press "View Settings" and put your server password in the password box.');
         }
         if (interaction.type.startsWith('obs.ss.')) {
             let scene = interaction.type.split('obs.ss.')[1];
@@ -305,8 +479,7 @@ class OBSControl extends Plugin {
                 this.typeToCall('StopRecord');
                 break;
             case 'obs.rec.toggle':
-                let out = this.typeToCall('ToggleRecord');
-                _SIO.emit('oc_rec', out.outputActive);
+                this.typeToCall('ToggleRecord');
                 break;
             case 'obs.rec.toggle_pause':
                 this.typeToCall('ToggleRecordPause');
@@ -324,8 +497,7 @@ class OBSControl extends Plugin {
                 });
                 break;
             case 'obs.str.toggle':
-                let str = this.typeToCall('ToggleStream');
-                _SIO.emit('oc_str', str.outputActive);
+                this.typeToCall('ToggleStream');
                 break;
             case 'obs.rb.start':
                 this.typeToCall('StartReplayBuffer');
@@ -334,8 +506,7 @@ class OBSControl extends Plugin {
                 this.typeToCall('StopReplayBuffer');
                 break;
             case 'obs.rb.toggle':
-                let rb = this.typeToCall('ToggleReplayBuffer');
-                _SIO.emit('oc_rb', rb.outputActive);
+                this.typeToCall('ToggleReplayBuffer');
                 break;
             case 'obs.rb.save':
                 this.typeToCall('SaveReplayBuffer');
@@ -346,6 +517,7 @@ class OBSControl extends Plugin {
                 })
                 break;
         }
+        if(this.io) this.io.emit('oc_data', this.currentDataPacket);
         return true;
     }
 

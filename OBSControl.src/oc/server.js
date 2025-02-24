@@ -1,175 +1,162 @@
-universal.on('oc_cs', (data) => {
+function getAllButtonsThatAreControlledByObsControl(typePredicate=(a)=>{return true}) {
+  let buttons = [];
   document.querySelectorAll('.button').forEach((btn) => {
     let inter = JSON.parse(btn.getAttribute('data-interaction'));
     if (inter == null) return;
-
-    if (inter.type == 'obs.cs') {
-      btn.innerText = data;
-    }
-    if (inter.type.startsWith('obs.ss')) {
-      let scene = inter.type.split('obs.ss.')[1];
-      if (!btn.querySelector('#oc_indi')) {
-        let indicator = document.createElement('div');
-        indicator.id = 'oc_indi';
-        btn.appendChild(indicator);
-      }
-      if (data == scene) {
-        btn.querySelector('#oc_indi').classList.add('indicator-green');
-      } else {
-        btn.querySelector('#oc_indi').classList.remove('indicator-green');
-      }
-    }
+    if (universal.plugins.obscontrol.types.filter((a)=>{return a.type == inter.type}).length == 0) return;
+    buttons.push({button: btn, interaction: inter});
   })
-})
+  buttons = buttons.filter(typePredicate);
+  return buttons;
+}
+function oc_getButtonsStartingWith(type="obs.") {
+  return getAllButtonsThatAreControlledByObsControl((e) => e.interaction.type.startsWith(type));
+}
 
-universal.on('oc_vo', (data) => {
-  document.querySelectorAll('.button').forEach((btn) => {
-    let inter = JSON.parse(btn.getAttribute('data-interaction'));
-    if (inter == null) return;
 
-    if (inter.type == 'obs.v.' + data.uuid) {
-      btn.querySelector('.slider-container').dataset.value = Math.round(data.inputVolumeDb);
+const handleCurrentScene = (data) => {
+  universal.ui.visual.typeChangeText("obs.cs", data);
+  setIndicatorsForSwitchSceneButtons(data);
+}
+
+const handleVolume = (array) => {
+  for(const {button, interaction} of oc_getButtonsStartingWith("obs.v")) {
+    for(const data of array) {
+      if (interaction.type == 'obs.v.' + data.uuid) {
+        button.querySelector('.slider-container').dataset.value = Math.round(data.inputVolumeDb);
+      }
     }
-  })
-});
+  }
+}
 
-universal.on('oc_rec', (data) => {
-  document.querySelectorAll('.button').forEach((btn) => {
-    let inter = JSON.parse(btn.getAttribute('data-interaction'));
-    if (inter == null) return;
+const handleRecordingStateUpdate = (data) => {
+  universal.ui.visual.typeChangeText("obs.rec.time", data.outputTimecode == undefined ? "Start recording!" : data.outputTimecode);
+  for(const {button, interaction} of oc_getButtonsStartingWith("obs.rec")) {
 
-    if (inter.type == 'obs.rec.start' || inter.type == 'obs.rec.stop' || inter.type == 'obs.rec.toggle') {
+    if (interaction.type == 'obs.rec.start' || interaction.type == 'obs.rec.stop' || interaction.type == 'obs.rec.toggle') {
       if (data.outputActive && !data.outputPaused) {
-        if (!btn.querySelector('#oc_indi')) {
-          let indicator = document.createElement('div');
-          indicator.id = 'oc_indi';
-          btn.appendChild(indicator);
-        }
-        btn.querySelector('#oc_indi').classList.add('indicator-red');
-        btn.querySelector('#oc_indi').classList.remove('indicator-green');
+        setIndicatorToButton(button, 'green');
       } else {
-        btn.querySelector('#oc_indi').classList.remove('indicator-red');
-        btn.querySelector('#oc_indi').classList.add('indicator-green');
         if (data.outputPaused) {
-          btn.querySelector('#oc_indi').classList.add('indicator-yellow');
-          btn.querySelector('#oc_indi').classList.remove('indicator-green');
+          setIndicatorToButton(button, 'yellow');
+        } else if(!data.outputActive) {
+          removeIndicatorFromButton(button);
         }
       }
     }
 
-    if (inter.type == 'obs.rec.toggle_pause') {
-      if (!data.outputActive) {
-        console.log('pased')
-        if (!btn.querySelector('#oc_indi')) {
-          let indicator = document.createElement('div');
-          indicator.id = 'oc_indi';
-          btn.appendChild(indicator);
-        }
-        btn.querySelector('#oc_indi').classList.add('indicator-yellow');
-        btn.querySelector('#oc_indi').classList.remove('indicator-green');
+    if (interaction.type == 'obs.rec.toggle_pause') {
+      if (data.outputPaused) {
+        setIndicatorToButton(button, 'yellow');
       } else {
-        btn.querySelector('#oc_indi').classList.remove('indicator-yellow');
-        btn.querySelector('#oc_indi').classList.add('indicator-green');
+        removeIndicatorFromButton(button);
       }
     }
-  })
-})
+  }
+}
 
-universal.on('oc_str', (data) => {
-  document.querySelectorAll('.button').forEach((btn) => {
-    let inter = JSON.parse(btn.getAttribute('data-interaction'));
-    if (inter == null) return;
-
-    if (inter.type == 'obs.str.start' || inter.type == 'obs.str.stop' || inter.type == 'obs.str.toggle') {
+const handleStreamingStateUpdate = (data) => {
+  universal.ui.visual.typeChangeText("obs.str.time", data.outputTimecode == undefined ? "Start recording!" : data.outputTimecode);
+  for(const {button, interaction} of oc_getButtonsStartingWith("obs.str")) {
+    if (interaction.type == 'obs.str.start' || interaction.type == 'obs.str.stop' || interaction.type == 'obs.str.toggle') {
       if (data.outputActive) {
-        if (!btn.querySelector('#oc_indi')) {
-          let indicator = document.createElement('div');
-          indicator.id = 'oc_indi';
-          btn.appendChild(indicator);
-        }
-        btn.querySelector('#oc_indi').classList.remove('indicator-green');
-        btn.querySelector('#oc_indi').classList.add('indicator-red');
+        setIndicatorToButton(button, 'green');
       } else {
-        btn.querySelector('#oc_indi').classList.remove('indicator-red');
-        btn.querySelector('#oc_indi').classList.add('indicator-green');
+        removeIndicatorFromButton(button);
       }
     }
-  })
-})
+  }
+}
 
-universal.on('oc_rb', (data) => {
-  document.querySelectorAll('.button').forEach((btn) => {
-    let inter = JSON.parse(btn.getAttribute('data-interaction'));
-    if (inter == null) return;
-
-    if (inter.type == 'obs.rb.start' || inter.type == 'obs.rb.stop' || inter.type == 'obs.rb.toggle') {
+const handleReplayBufferStateUpdate = (data) => {
+  for(const {button, interaction} of oc_getButtonsStartingWith("obs.rb")) {
+    if (interaction.type == 'obs.rb.start' || interaction.type == 'obs.rb.stop' || interaction.type == 'obs.rb.toggle') {
       if (data.outputActive) {
-        if (!btn.querySelector('#oc_indi')) {
-          let indicator = document.createElement('div');
-          indicator.id = 'oc_indi';
-          btn.appendChild(indicator);
-        }
-        btn.querySelector('#oc_indi').classList.remove('indicator-green');
-        btn.querySelector('#oc_indi').classList.add('indicator-red');
+        setIndicatorToButton(button, 'green');
       } else {
-        btn.querySelector('#oc_indi').classList.remove('indicator-red');
-        btn.querySelector('#oc_indi').classList.add('indicator-green');
+        setIndicatorToButton(button, 'red');
       }
     }
-  })
-});
+  }
+}
 
-universal.on('oc_ms', (data) => {
-  document.querySelectorAll('.button').forEach((btn) => {
-    let inter = JSON.parse(btn.getAttribute('data-interaction'));
-    if (inter == null) return;
-
-    if (inter.type == 'obs.m.' + data.uuid) {
+const handleMuteStatus = (data) => {
+  for(const {button, interaction} of oc_getButtonsStartingWith("obs.m")) {
+    if (interaction.type == 'obs.m.' + data.uuid) {
       if (data.inputMuted) {
-        if (!btn.querySelector('#oc_indi')) {
-          let indicator = document.createElement('div');
-          indicator.id = 'oc_indi';
-          btn.appendChild(indicator);
-        }
-        btn.querySelector('#oc_indi').classList.remove('indicator-green');
-        btn.querySelector('#oc_indi').classList.add('indicator-red');
+        setIndicatorToButton(button, 'red');
       } else {
-        btn.querySelector('#oc_indi').classList.remove('indicator-red');
-        btn.querySelector('#oc_indi').classList.add('indicator-green');
+        setIndicatorToButton(button, 'green');
       }
     }
-  });
-});
+  }
+}
 
-universal.on('oc_src_vis', (data) => {
-  document.querySelectorAll('.button').forEach((btn) => {
-    let inter = JSON.parse(btn.getAttribute('data-interaction'));
-    if (inter == null) return;
-
-    if (inter.type == 'obs.src.vis' && inter.data.Source == data.sourceName) {
+const handleSourceVisibility = (data) => {
+  for(const {button, interaction} of oc_getButtonsStartingWith("obs.src.vis")) {
+    if (interaction.type == 'obs.src.vis' && interaction.data.Source == data.sourceName) {
       if (data.sceneItemEnabled) {
-        if (!btn.querySelector('#oc_indi')) {
-          let indicator = document.createElement('div');
-          indicator.id = 'oc_indi';
-          btn.appendChild(indicator);
-        }
-        btn.querySelector('#oc_indi').classList.remove('indicator-red');
-        btn.querySelector('#oc_indi').classList.add('indicator-green');
+        setIndicatorToButton(button, 'green');
       } else {
-        btn.querySelector('#oc_indi').classList.remove('indicator-green');
-        btn.querySelector('#oc_indi').classList.add('indicator-red');
+        setIndicatorToButton(button, 'red');
       }
     }
-  });
-});
+  }
+}
+
+const packetDataHandlers = {
+  "oc_cs": handleCurrentScene,
+  "oc_vo": handleVolume,
+  "oc_rec": handleRecordingStateUpdate,
+  "oc_str": handleStreamingStateUpdate,
+  "oc_rb": handleReplayBufferStateUpdate,
+  "oc_ms": handleMuteStatus,
+  "oc_src_vis": handleSourceVisibility,
+};
+
+const packetDataHandlerKeys = Object.keys(packetDataHandlers);
+
+universal.on('oc_data', (packet) => {
+  for(const packetKey of Object.keys(packet)) {
+    if(packetDataHandlerKeys.includes(packetKey)) {
+      (async() => {
+        packetDataHandlers[packetKey](packet[packetKey]);
+      })();
+    }
+  }
+})
+
+async function setIndicatorsForSwitchSceneButtons(currentScene) {
+  for(const {button, interaction} of oc_getButtonsStartingWith("obs.ss")) {
+    let scene = interaction.type.split('obs.ss.')[1];
+    if (currentScene == scene) setIndicatorToButton(button, 'green');
+    else removeIndicatorFromButton(button);
+  }
+}
+
+function setIndicatorToButton(btn, indicator) {
+  if (!btn.querySelector('#oc_indi')) {
+    let indicator = document.createElement('div');
+    indicator.id = 'oc_indi';
+    btn.appendChild(indicator);
+  }
+  const cl = btn.querySelector('#oc_indi').classList;
+  cl.remove('indicator-red');
+  cl.remove('indicator-green');
+  cl.remove('indicator-yellow');
+  cl.add('indicator-' + indicator);
+}
+
+function removeIndicatorFromButton(btn) {
+  if (btn.querySelector('#oc_indi')) {
+    btn.querySelector('#oc_indi').remove();
+  }
+}
 
 const obsc_handlePageChange = () => {
   document.querySelectorAll('.button').forEach((btn) => {
     let inter = JSON.parse(btn.getAttribute('data-interaction'));
     if (inter != null) {
-      if (inter.type.startsWith('obs.ss') || inter.type == 'obs.cs') {
-        universal.send('oc_cs');
-      }
       if (inter.type.startsWith('obs.v.')) {
         let uuid = inter.type.split('obs.v.')[1];
         universal.send('oc_vo', {
@@ -177,22 +164,10 @@ const obsc_handlePageChange = () => {
           uuid: uuid
         });
       }
-      if (inter.type.startsWith('obs.rec.')) {
+
+      if (inter.type.startsWith('obs.rec.') || inter.type.startsWith('obs.str.') || inter.type.startsWith('obs.rb.')) {
         let indicator = document.createElement('div');
         indicator.id = 'oc_indi';
-        universal.send('oc_rec');
-        btn.appendChild(indicator);
-      }
-      if (inter.type.startsWith('obs.str.')) {
-        let indicator = document.createElement('div');
-        indicator.id = 'oc_indi';
-        universal.send('oc_str');
-        btn.appendChild(indicator);
-      }
-      if (inter.type.startsWith('obs.rb.')) {
-        let indicator = document.createElement('div');
-        indicator.id = 'oc_indi';
-        universal.send('oc_rb');
         btn.appendChild(indicator);
       }
       if (inter.type.startsWith('obs.m.')) {
@@ -218,7 +193,13 @@ const obsc_handlePageChange = () => {
 };
 
 obsc_handlePageChange();
-
+universal.listenFor('launch', () => {
+  obsc_handlePageChange();
+})
 universal.listenFor('page_change', () => {
   obsc_handlePageChange();
 })
+
+setInterval(() => {
+  obsc_handlePageChange();
+}, 1000);
