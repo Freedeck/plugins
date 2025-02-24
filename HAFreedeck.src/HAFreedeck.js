@@ -8,7 +8,7 @@ class HAF extends Plugin {
   url = "http://localhost:8123/";
 
   setup() {
-    console.log("Initialized HomeAssistant Freedeck.");
+    console.log("Initialized HAFreedeck.");
     this.add(HookRef.types.server, "haf/server.js");
     this.add(HookRef.types.client, "haf/server.js");
 
