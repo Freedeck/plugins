@@ -1,27 +1,17 @@
-const path = require("path");
-const Plugin = require(path.resolve('./src/classes/Plugin'));
+const {Plugin} = require("@freedeck/api");
 const em = require("easymidi");
 
 let midiOut;
 const noteMap = new Map();
 
 class EasyMidi extends Plugin {
-    constructor() {
-        super('EasyMidi', 'Freedeck', 'EasyMidi', false);
-    }
-    
-    onInitialize() {
+    setup() {
         console.log("Initializing EasyMidi...");
-        
-        // List available MIDI inputs and outputs
-        console.log('MIDI Outputs:', em.getOutputs());
-        console.log('MIDI Inputs:', em.getInputs());
 
-        // Ensure the MIDI output is correctly mapped to FL Studio or another virtual device
-        try {        midiOut = new em.Output("Freedeck"); // Try using FL Studio's input port name
-        }catch(e){console.error(e)}
-
-        // Map of MIDI notes to musical notes
+        try {midiOut = new em.Output("Freedeck");}catch(e){
+            console.error(e)
+            console.log("!!!!!!!! EasyMidi | Make a MIDI output named \"Freedeck\"")
+        }
         const notes = [
             "C0", "C#0", "D0", "D#0", "E0", "F0", "F#0", "G0", "G#0", "A0", "A#0", "B0",
             "C1", "C#1", "D1", "D#1", "E1", "F1", "F#1", "G1", "G#1", "A1", "A#1", "B1",
@@ -34,10 +24,12 @@ class EasyMidi extends Plugin {
             "C8", "C#8", "D8", "D#8", "E8", "F8", "F#8", "G8", "G#8", "A8", "A#8", "B8"
         ];
 
-        // Register all MIDI notes with their musical note names
         notes.forEach((note, index) => {
             noteMap.set(note, index);
-            this.registerNewType(`Note: ${note}`, note);
+            this.register({
+                display: `Note: ${note}`,
+                type: note
+            })
         });
 
         return true;
@@ -47,23 +39,11 @@ class EasyMidi extends Plugin {
         const note = noteMap.get(dat.type);
         if (note !== undefined) {
             console.log(`Sending Note On: ${note}`);
-
-            // Send Note On message
             midiOut.send("noteon", {
                 note: note,
                 velocity: 127,
-                channel: 0  // Use channel 0 to ensure compatibility with FL Studio
+                channel: 0
             });
-
-            // Send Note Off after 1 second to prevent hanging notes
-            // setTimeout(() => {
-            //     console.log(`Sending Note Off: ${note}`);
-            //     midiOut.send("noteoff", {
-            //         note: note,
-            //         velocity: 0,
-            //         channel: 0
-            //     });
-            // }, 1000);
         } else {
             console.error(`Unknown note type: ${dat.type}`);
         }
