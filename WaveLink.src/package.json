@@ -1,6 +1,6 @@
 {
   "name": "wavelink",
-  "version": "2.1.1",
+  "version": "2.3.0",
   "description": "Locally mute any source from your Elgato Wave Link device. More features coming soon.",
   "main": "WL.js",
   "scripts": {

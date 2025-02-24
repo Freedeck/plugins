@@ -1,8 +1,3 @@
-const styleLoader = document.createElement('link');
-styleLoader.rel = 'stylesheet';
-styleLoader.href = '/hooks/wavelink/wl.css';
-document.head.appendChild(styleLoader);
-
 universal.on('wl.stat', (data) => {
   data = JSON.parse(data);
   document.querySelectorAll('.button').forEach((btn) => {
@@ -11,11 +6,9 @@ universal.on('wl.stat', (data) => {
     if ((inter.type == 'wl.m.' + data.input && data.type == 'm') ||
       (inter.type == 'wl.sm.' + data.input && data.type == 'sm')) {
       if (data.value == true) {
-        btn.classList.remove('wl_active');
-        btn.classList.add('wl_inactive');
+        setIndicatorToButton(btn, 'red');
       } else {
-        btn.classList.remove('wl_inactive');
-        btn.classList.add('wl_active');
+        setIndicatorToButton(btn, 'green');
       }
     }
   })
@@ -40,7 +33,7 @@ const wl_handlePageChange = () => {
     let inter = JSON.parse(btn.getAttribute('data-interaction'));
     if (inter != null) {
       if (inter.type.startsWith('wl.m.') || inter.type.startsWith('wl.sm.')) {
-        if (btn.classList.contains('wl_active') || btn.classList.contains('wl_inactive')) return;
+        if (btn.querySelector('#wl_indi')) return;
         let type = inter.type.split('wl.')[1].split('.')[0];
         universal.send('wl.stat', inter.type.split('.').pop().trim() + "@" + type);
         btn.addEventListener('click', () => {
@@ -60,3 +53,22 @@ wl_handlePageChange();
 universal.listenFor('page_change', () => {
   wl_handlePageChange();
 })
+
+function setIndicatorToButton(btn, indicator) {
+  if (!btn.querySelector('#wl_indi')) {
+    let indicator = document.createElement('div');
+    indicator.id = 'wl_indi';
+    btn.appendChild(indicator);
+  }
+  const cl = btn.querySelector('#wl_indi').classList;
+  cl.remove('indicator-red');
+  cl.remove('indicator-green');
+  cl.remove('indicator-yellow');
+  cl.add('indicator-' + indicator);
+}
+
+function removeIndicatorFromButton(btn) {
+  if (btn.querySelector('#wl_indi')) {
+    btn.querySelector('#wl_indi').remove();
+  }
+}
