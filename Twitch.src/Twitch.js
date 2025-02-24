@@ -1,18 +1,25 @@
-const path = require("path");
-const Plugin = require(path.resolve("./src/classes/Plugin"));
+const {Plugin, HookRef, types} = require("@freedeck/api");
 
 class Twitch extends Plugin {
-	constructor() {
-		super("Twitch", "Freedeck", "Twitch", false);
-		this.version = "1.1.0";
-	}
-	onInitialize() {
-		console.log("Initialized Twitch plugin");
-		this.setJSServerHook("twitch/Hook.js");
-		this.setJSClientHook("twitch/Hook.js");
-		this.registerNewType("Viewer Count (Number + Streamer Name)", "t.vc", {streamer:""}, "text");
-		this.registerNewType("Viewer Count (Number)", "t.vcn", {streamer:""}, "text");
-		return true;
+	setup() {
+		this.add(HookRef.types.server, "twitch/Hook.js");
+		this.add(HookRef.types.client, "twitch/Hook.js");
+		this.register({
+			display: "Viewer Count (Number + Streamer Name)",
+			type: "t.vc",
+			templateData: {
+				streamer: ""
+			},
+			renderType: types.text
+		});
+		this.register({
+			display: "Viewer Count (Number Only)",
+			type: "t.vcn",
+			templateData: {
+				streamer: ""
+			},
+			renderType: types.text
+		});
 	}
 }
 
