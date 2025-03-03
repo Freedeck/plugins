@@ -1,20 +1,25 @@
-const path = require("path");
-const Plugin = require(path.resolve('./src/classes/Plugin'));
+const {Plugin, HookRef} = require("@freedeck/api");
 
 class Clock extends Plugin {
-    constructor() {
-        // With JS Hooks, you must keep the ID of your plugin the name of the source folder.
-        super('Clock', 'Freedeck', 'Clock', false);
-        this.version = '1.2.1';
-    }
+    setup() {
+        this.add(HookRef.types.server, "clock/client.js");
+        this.add(HookRef.types.client, "clock/client.js");
 
-    onInitialize () {
-        this.setJSServerHook("clock/client.js");
-        this.setJSClientHook("clock/client.js");
-        this.registerNewType('Time (12h, seconds)', 'clock.time');
-        this.registerNewType('Time (24h, seconds)', 'clock.time.24');
-        this.registerNewType('Date', 'clock.date');
-        // This is all you need to do. Freedeck will do all of the logic for you.
+        this.register({
+            display: 'Time (12h, seconds)',
+            type: 'clock.time'
+        })
+
+        this.register({
+            display: 'Time (24h, seconds)',
+            type: 'clock.time'
+        })
+
+        this.register({
+            display: 'Date',
+            type: 'clock.date'
+        })
+
         return true;
     }
 

@@ -4,15 +4,16 @@ const handle = () => {
 			let dat = button.getAttribute('data-interaction');
 			dat = JSON.parse(dat);
 			if(button.id == 'editor-btn') return;
+			const currentTime = new Date(Date.now());
 			if (dat.type == 'clock.time') {
 				let txt = button.querySelector('.button-text').querySelector('p');
-				txt.innerText = new Date(Date.now()).toLocaleTimeString();
+				txt.innerText = currentTime.toLocaleTimeString();
 			} else if (dat.type == 'clock.date') {
 				let txt = button.querySelector('.button-text').querySelector('p');
-				txt.innerText = new Date(Date.now()).toLocaleDateString();
+				txt.innerText = currentTime.toLocaleDateString();
 			} else if (dat.type == 'clock.time.24') {
 				let txt = button.querySelector('.button-text').querySelector('p');
-				txt.innerText = new Date(Date.now()).toLocaleTimeString('en-US', { hour12: false });
+				txt.innerText = currentTime.toLocaleTimeString('en-US', { hour12: false });
 			}
 		}
 	};
