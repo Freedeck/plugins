@@ -8,6 +8,7 @@ emptyBuild("WaveLink");
 emptyBuild("DevUtils");
 emptyBuild("HAFreedeck");
 emptyBuild("Twitch");
+emptyBuild("TextBG");
 build("myinstants",[Operations.INSTALL_DEPS_PRE_PACKAGE]);
 build("EasyMidi",[Operations.INSTALL_DEPS_PRE_PACKAGE]);
 build("OBSControl", [Operations.INSTALL_DEPS_PRE_PACKAGE])

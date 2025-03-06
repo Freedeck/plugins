@@ -1,37 +1,85 @@
 let isAuthorized = false;
-
+universal.on("spotify_rlco", () => {
+  isAuthorized = false;
+})
 universal.on("spotify_data", (data) => {
   const {playbackState, auth} = data;
-  if(playbackState.error?.status == 400 || playbackState.error?.status==401 && !isAuthorized) {
+  if((playbackState.error?.status === 400 || playbackState.error?.status===401) && !isAuthorized) {
     window.open(auth, "_blank")
     isAuthorized = true;
   } else {
     isAuthorized = true;
   }
-  let showing = `${getArtistsNames(playbackState.item)} - ${playbackState.item.name}`
+  const albumName = playbackState.item.album.name;
+  const artists = getArtistsNames(playbackState.item);
+  const itemName = playbackState.item.name;
+  const showing = `${artists} - ${itemName}`
+  
   universal.ui.visual.typeChangeText("sp.clf", showing)
   universal.ui.visual.typeChangeText("sp.clt", `${playbackState.item.name}`)
-  if(playbackState.is_playing == false) {
-    getAllOfType("sp.cl").forEach(({element, interaction}) => {
-      setIndicatorToButton(element, "yellow")
-    })
-
-    getAllOfType("sp.playpause").forEach(({element, interaction}) => {
-      setIndicatorToButton(element, "yellow")
-    })
+  
+  if(playbackState.is_playing === false) {
+    makeAll("sp.cl", "yellow");
+    makeAll("sp.playpause", "yellow");
   } else {
-    getAllOfType("sp.playpause").forEach(({element, interaction}) => {
-      setIndicatorToButton(element, "green")
-    })
-    getAllOfType("sp.cl").forEach(({element, interaction}) => {
-      removeIndicatorFromButton(element)
-    })
+    makeAll("sp.cl", "none");
+    makeAll("sp.playpause", "green");
+  }
+
+  if(playbackState.shuffle_state === true) {
+    makeAll("sp.shf", "green");
+  } else {
+    makeAll("sp.shf", "none");
   }
 
   const ctime = msToTimestamp(playbackState.progress_ms);
   const ttime = msToTimestamp(playbackState.item.duration_ms);
   universal.ui.visual.typeChangeText("sp.pbt", `${ctime}/${ttime}`)
+
+  if(universal.plugins.textbg) {
+    const isPaused = playbackState.is_playing ? "" : " (Paused)";
+    const tbgTitle = `Spotify | <b>${artists}</b> - <b>${itemName}</b> | ${ctime}/${ttime}${isPaused} | on <b>${playbackState.device.name}</b>`;
+    universal.send("textbg-display", tbgTitle);
+    universal.send("_t", tbgTitle);
+  }
+
+  imgs = [];
+  for(const {element, interaction} of [...getAllOfType("sp.clabt"), ...getAllOfType("sp.clabtplus")]) {
+    if(!element.querySelector("img#sptcart")) {
+      const image = new Image();
+      image.id = "sptcart";
+      image.style.pointerEvents='none';
+      element.appendChild(image);
+      imgs.push(image);
+    } else {
+      imgs.push(element.querySelector("img#sptcart"))
+    }
+    const txt = element.querySelector(".button-text");
+    if(interaction.type === 'sp.clabtplus') {
+      if(txt.style.display !== 'block') txt.style.display = 'block';
+      if(txt.style.position !== 'fixed') txt.style.position = 'fixed';
+      txt.querySelector("p").innerText = albumName;
+    } else {
+      if(txt.style.display !== 'none') txt.style.display = 'none';
+    }
+  }
+
+  const wantedCoverArt = playbackState.item.album.images[0].url;
+  for(const imgElement of imgs) {
+    if(imgElement.src !== wantedCoverArt) imgElement.src = wantedCoverArt;
+    if(imgElement.style.width !== "100%") imgElement.style.width="100%";
+    if(imgElement.style.height !== "100%") imgElement.style.height="100%";
+  }
 })
+
+function makeAll(type, color) {
+  for(const {element} of getAllOfType(type)) {
+    if(color === "none") removeIndicatorFromButton(element)
+    else setIndicatorToButton(element, color);
+  }
+}
+
+let imgs = [];
 
 function msToTimestamp(ms) {
   const minutes = Math.floor(ms / 60000);
@@ -41,10 +89,10 @@ function msToTimestamp(ms) {
 
 function getArtistsNames(playbackItem) {
   let output = "";
-  let lastArtist = playbackItem.artists[playbackItem.artists.length-1];
+  const lastArtist = playbackItem.artists[playbackItem.artists.length-1];
   for(const artist of playbackItem.artists) {
     output += artist.name
-    if(artist.name != lastArtist.name) output += ", "
+    if(artist.name !== lastArtist.name) output += ", "
   }
   return output;
 }
@@ -72,7 +120,7 @@ function getAllOfType(type){
   let out = [];
   document.querySelectorAll('.button').forEach((btn) => {
     let inter = JSON.parse(btn.getAttribute('data-interaction'));
-    if (inter != null) {
+    if (inter != null && btn.id !== 'editor-btn') {
       if(inter.type == type) out.push({element:btn, interaction:inter})
     }
   });

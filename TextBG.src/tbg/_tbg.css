@@ -1,12 +1,16 @@
 .textbg-display {
-	width: 100vw;
-	font-size: 0.75em;
+	width: max-content;
 	height: 1.2em;
 	margin: 0;
 	position: absolute;
 	top: 0;
-	left: 0;
-	background-color: rgba(0,0,0, 0.25);
-	border-radius: 0 0 .5rem .5rem;
+	left: 50%;
+	transform: translateX(-50%);
+	padding: .5rem;
+	opacity: 1;
+	background-color: var(--companion-left-sidebar-bg);
+	color: var(--companion-left-sidebar-color);
+	border-radius: 0 0 .75rem .75rem;
 	text-align: center;
+	transition-duration: .25s;
 }
