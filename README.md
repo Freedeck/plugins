@@ -1,28 +1,6 @@
-# OBSControl
+# Plugins
 
-Control your OBS setup with Freedeck!  
+![Freedeck Developer](https://raw.githubusercontent.com/Freedeck/media-kit/refs/heads/main/sections/slice2.png)
 
-Minimum Freedeck version: v6.0.0-ob6  
-
-Current Features:
-
-- Scene changing
-- Current scene text
-- Showing/Hiding sources
-- Muting/Unmuting Inputs
-- Input volume slider (WASAPI Out/In)
-  - Shows dB as measurement! (only available in v6.0.0-ob7).
-- Recording: Start/Pause/Stop
-- Stream: Start/Stop
-- Replay Buffer: Start/Save/Stop
-- All buttons have live indicators (only available in v6.0.0-ob7)
-Roadmap:
-
-- Feature Parity with the [Elgato plugin](https://marketplace.elgato.com/product/obs-studio-35615969-830f-45c9-ba0a-1a295bba7fec)
-- Scene Collection switching
-- Media playback control
-  - I don't know what this means
-- Studio Mode: On/Push Preview/Off
-- Filter: Show/Hide
-- Screenshot
-- Transition switching
+This is the Freedeck Plugins repository. It contains **all** of the master source code for all the Freedeck-created plugins.  
+Dynamically, upon every push, [this repository's Marketplace manifest updates.](https://freedeck.github.io/plugins/repository.json), and this repository is available in Freedeck.
