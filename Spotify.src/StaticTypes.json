@@ -1,0 +1,56 @@
+[
+  {
+    "type": "sp.rlco",
+    "display": "Re-authorize"
+  },
+  {
+    "type": "sp.clt",
+    "display": "Currently Listening (Title)",
+    "renderType": "text"
+  },
+  {
+    "type": "sp.clf",
+    "display": "Currently Listening (Artists - Title)",
+    "renderType": "text"
+  },
+  {
+    "type": "sp.clabt",
+    "display": "Currently Listening (Album Art)",
+    "renderType": "text"
+  },
+  {
+    "type": "sp.clabtplus",
+    "display": "Currenty Listening (Album + Art)",
+    "renderType": "text"
+  },
+  {
+    "type": "sp.cll",
+    "display": "Current Lyric",
+    "renderType": "text"
+  },
+  {
+    "type": "sp.pbt",
+    "display": "Playback Time",
+    "renderType": "text"
+  },
+  {
+    "type": "sp.playpause",
+    "display": "Play/Pause"
+  },
+  {
+    "type": "sp.next",
+    "display": "Next"
+  },
+  {
+    "type": "sp.prev",
+    "display": "Previous"
+  },
+  {
+    "type": "sp.shf",
+    "display": "Toggle Shuffle"
+  },
+  {
+    "type": "sp.ntfy",
+    "display": "Notify Current Song"
+  }
+]

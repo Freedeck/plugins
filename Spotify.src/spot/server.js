@@ -2,15 +2,29 @@ let isAuthorized = false;
 universal.on("spotify_rlco", () => {
   isAuthorized = false;
 })
-universal.on("spotify_data", (data) => {
-  const {playbackState, auth} = data;
-  if((playbackState.error?.status === 400 || playbackState.error?.status===401) && !isAuthorized) {
-    window.open(auth, "_blank")
+let isTryingToLogin = false;
+universal.on("spotify_force_relogin", (data) => {
+  if(isTryingToLogin) return;
+  const win = window.open(data, "_blank")
+  isTryingToLogin = true;
+  if(win) {
+    const timer = setInterval(() => {
+      if (win.closed) {
+        clearInterval(timer);
+        isTryingToLogin = false;
+      }
+    }, 500)
+  }
+})
+universal.on("spotify_data", (data) =>{
+  const {playbackState} = data;
+  if(((playbackState.error?.status === 400 || playbackState.error?.status===401) || playbackState === "FIRST_TIME") && !isAuthorized) {
     isAuthorized = true;
   } else {
     isAuthorized = true;
   }
-  const albumName = playbackState.item.album.name;
+  if(!playbackState.item) return;
+  const albumName = playbackState.item?.album?.name;
   const artists = getArtistsNames(playbackState.item);
   const itemName = playbackState.item.name;
   const showing = `${artists} - ${itemName}`
@@ -35,13 +49,21 @@ universal.on("spotify_data", (data) => {
   const ctime = msToTimestamp(playbackState.progress_ms);
   const ttime = msToTimestamp(playbackState.item.duration_ms);
   universal.ui.visual.typeChangeText("sp.pbt", `${ctime}/${ttime}`)
+  const currentLyric = lastLyric;
+  getLyricAt(playbackState.progress_ms);
 
   if(universal.plugins.textbg) {
     const isPaused = playbackState.is_playing ? "" : " (Paused)";
-    const tbgTitle = `Spotify | <b>${artists}</b> - <b>${itemName}</b> | ${ctime}/${ttime}${isPaused} | on <b>${playbackState.device.name}</b>`;
+    // const tbgTitle = `Spotify | <b>${artists}</b> - <b>${itemName}</b> | ${ctime}/${ttime}${isPaused} | on <b>${playbackState.device.name}</b>`;
+    if(currentLyric.lyric !== lastLyric.lyric || currentLyric.time !== lastLyric.time) {
+      console.log("pulsing")
+      universal.send("textbg-command", "pulse")
+    }
+    const tbgTitle = `${lastLyric.lyric}`;
     universal.send("textbg-display", tbgTitle);
     universal.send("_t", tbgTitle);
   }
+  universal.ui.visual.typeChangeText("sp.cll", `${lastLyric.lyric}`)
 
   imgs = [];
   for(const {element, interaction} of [...getAllOfType("sp.clabt"), ...getAllOfType("sp.clabtplus")]) {
@@ -70,13 +92,91 @@ universal.on("spotify_data", (data) => {
     if(imgElement.style.width !== "100%") imgElement.style.width="100%";
     if(imgElement.style.height !== "100%") imgElement.style.height="100%";
   }
+
+  if(lyrics.type === 'none') {
+    getLyricsFor(itemName, playbackState.item.artists[0].name, albumName, playbackState.item.duration_ms);
+  } else {
+    if(lyrics.current.name !== itemName) {
+      getLyricsFor(itemName, playbackState.item.artists[0].name, albumName, playbackState.item.duration_ms);
+    }
+  }
+
+  console.log(lyrics);
 })
+
+let lastLyric = {time:0,lyric:"Couldn't find lyrics for this song!"};
+function getLyricAt(timestampMs) {
+  if(lyrics.type === "synced") {
+    console.log("Getting lyric at time ", timestampMs)
+    for(const lyricObject of lyrics.values) {
+      const difference = lyricObject.time - timestampMs;
+      if(Math.abs(difference) < 250) {
+        lastLyric = lyricObject;
+        break;
+      }
+    }
+  }
+  return lastLyric;
+}
+
+const lyrics = {
+  type: 'none',
+  current: null,
+  values: null,
+};
+function getLyricsFor(name, artist, album, durationMs) {
+  const url = new URL("https://lrclib.net/api/get");
+  url.search = new URLSearchParams({
+    track_name: name,
+    artist_name: artist,
+    album_name: album,
+    duration: (durationMs/1000)
+  }).toString()
+  console.log("Fetching lyrics", url.toString())
+  fetch(url).then(async (res) => {
+    let out = await res.text();
+    try {
+      out = JSON.parse(out)
+    } catch(err) {
+      console.log("Error", err)
+    }
+    return out;
+  }).then((res) => {
+    lyrics.current = {name, artist, album};
+    if(res.syncedLyrics) {
+      lyrics.type = "synced";
+      lyrics.values = [];
+      for(const line of res.syncedLyrics.split("\n")) {
+        const timestamp = line.split("[")[1].split("]")[0];
+        const ms = timestampToMs(timestamp);
+        const actualText = line.split("] ")[1];
+        const lyricObject = {
+          time: ms,
+          lyric: actualText
+        }
+        lyrics.values.push(lyricObject);
+      }
+    } else {
+      lyrics.type = "generic";
+      lyrics.values = res.plainLyrics || res || "";
+    }
+  })
+}
 
 function makeAll(type, color) {
   for(const {element} of getAllOfType(type)) {
     if(color === "none") removeIndicatorFromButton(element)
     else setIndicatorToButton(element, color);
   }
+}
+
+function timestampToMs(timestamp) {
+  const [minutes, seconds] = timestamp.split(':');
+  const [secondsPart, milliseconds] = seconds.split('.');
+  const totalMinutes = Number.parseInt(minutes);
+  const totalSeconds = Number.parseInt(secondsPart);
+  const totalMilliseconds = Number.parseInt(milliseconds);
+  return (totalMinutes * 60 * 1000) + (totalSeconds * 1000) + totalMilliseconds;
 }
 
 let imgs = [];
