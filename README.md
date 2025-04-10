@@ -5,6 +5,8 @@
 This is the Freedeck Plugins repository. It contains **all** of the master source code for all the Freedeck-created plugins.  
 Dynamically, upon every push, [this repository's Marketplace manifest updates.](https://freedeck.github.io/plugins/repository.json), and this repository is available in Freedeck.
 
+[Please join the Freedeck Discord for support.](https://freedeck.app/discord)
+
 ## Using the Freedeck API to build a plugin
 
 When documentation is properly written, a link to it will be here.
