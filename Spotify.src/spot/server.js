@@ -56,7 +56,6 @@ universal.on("spotify_data", (data) =>{
     const isPaused = playbackState.is_playing ? "" : " (Paused)";
     // const tbgTitle = `Spotify | <b>${artists}</b> - <b>${itemName}</b> | ${ctime}/${ttime}${isPaused} | on <b>${playbackState.device.name}</b>`;
     if(currentLyric.lyric !== lastLyric.lyric || currentLyric.time !== lastLyric.time) {
-      console.log("pulsing")
       universal.send("textbg-command", "pulse")
     }
     const tbgTitle = `${lastLyric.lyric}`;
@@ -100,28 +99,30 @@ universal.on("spotify_data", (data) =>{
       getLyricsFor(itemName, playbackState.item.artists[0].name, albumName, playbackState.item.duration_ms);
     }
   }
-
-  console.log(lyrics);
 })
 
-let lastLyric = {time:0,lyric:"Couldn't find lyrics for this song!"};
+let lastLyric = {time:0,lyric:""};
 function getLyricAt(timestampMs) {
+  if(lyrics.not_exist) {
+    lastLyric = {time:0,lyric:""};
+    return lastLyric;
+  }
   if(lyrics.type === "synced") {
-    console.log("Getting lyric at time ", timestampMs)
     for(const lyricObject of lyrics.values) {
       const difference = lyricObject.time - timestampMs;
-      if(Math.abs(difference) < 250) {
+      if(Math.abs(difference) < 275) {
         lastLyric = lyricObject;
         break;
       }
     }
   }
-  return lastLyric;
+  return lastLyric; 
 }
 
 const lyrics = {
   type: 'none',
   current: null,
+  not_exist: true,
   values: null,
 };
 function getLyricsFor(name, artist, album, durationMs) {
@@ -142,6 +143,7 @@ function getLyricsFor(name, artist, album, durationMs) {
     }
     return out;
   }).then((res) => {
+    lyrics.not_exist = false;
     lyrics.current = {name, artist, album};
     if(res.syncedLyrics) {
       lyrics.type = "synced";
@@ -160,7 +162,7 @@ function getLyricsFor(name, artist, album, durationMs) {
       lyrics.type = "generic";
       lyrics.values = res.plainLyrics || res || "";
     }
-  })
+  });
 }
 
 function makeAll(type, color) {
