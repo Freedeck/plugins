@@ -12,6 +12,7 @@ emptyBuild("HAFreedeck");
 emptyBuild("YTMD");
 emptyBuild("Twitch");
 emptyBuild("TextBG");
+emptyBuild("Spotify");
 build("WaveLink",[Operations.INSTALL_DEPS_PRE_PACKAGE]);
 build("myinstants",[Operations.INSTALL_DEPS_PRE_PACKAGE]);
 build("EasyMidi",[Operations.INSTALL_DEPS_PRE_PACKAGE]);
@@ -32,7 +33,7 @@ function build(packageId, extra=[Operations.INSTALL_DEPS_PRE_PACKAGE]) {
 
 
 
-const repository = {};
+let repository = {};
 const fs = require('fs');
 
 console.log("INFO / STAGE 2 >> Generating repository.json");
@@ -50,7 +51,7 @@ for(const folder in allBuiltPlugins){
   const {freedeck, name, author, description, version} = require(path.resolve(folderPath, "package.json"));
 
   repository[name] = {
-    message: "This plugin could be unstable, as this is the built package straight from GitHub's latest commit.",
+    message: freedeck.message,
     source: `github:freedeck/${name}`,
     author,
     title: freedeck.title,
@@ -60,23 +61,26 @@ for(const folder in allBuiltPlugins){
   }
 }
 
+const favoritedPackages = [
+  "spotify",
+  "obscontrol",
+  "wavelink",
+  "myinstants",
+  "clock",
+  "ytmd",
+  "textbg"
+]
+const sortedRepository = {};
+favoritedPackages.forEach(packageId => {
+  if(repository[packageId]){
+    sortedRepository[packageId] = repository[packageId];
+    delete repository[packageId];
+  }
+});
+
+Object.assign(sortedRepository, repository);
+repository = sortedRepository;
+console.log(repository)
+
 fs.writeFileSync(path.resolve(__dirname, "repository.json"), JSON.stringify(repository, null, 2));
 
-/*{
-          "id": {
-              "source": "github:username/repo",
-              "author": "User",
-              "title": "Example Plugin",
-              "description": "This is a very good plugin",
-              "version": "1.0.0",
-              "download": "https://content-dl.freedeck.app"
-          },
-          "Clock": {
-              "source": "github:freedeck/clock",
-              "author": "Freedeck",
-              "title": "Clock",
-              "description": "A simple clock for your Freedeck.",
-              "version": "1.2.0",
-              "download": "https://content-dl.freedeck.app/hosted/Clock.Freedeck"
-          }
-    }*/

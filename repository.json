@@ -1,6 +1,38 @@
 {
+  "spotify": {
+    "source": "github:freedeck/spotify",
+    "author": "Freedeck",
+    "title": "Spotify",
+    "description": "Control your Spotify from your Freedeck!",
+    "version": "1.0.0",
+    "download": "https://freedeck.github.io/plugins/plugins/spotify.fdpackage"
+  },
+  "obscontrol": {
+    "source": "github:freedeck/obscontrol",
+    "author": "Freedeck",
+    "title": "OBS Control",
+    "description": "Control your OBS Studio setup right from your Freedeck.",
+    "version": "2.0.0",
+    "download": "https://freedeck.github.io/plugins/plugins/obscontrol.fdpackage"
+  },
+  "wavelink": {
+    "source": "github:freedeck/wavelink",
+    "author": "Freedeck",
+    "title": "WaveLink",
+    "description": "Locally mute any source from your Elgato Wave Link device. More features coming soon.",
+    "version": "2.3.0",
+    "download": "https://freedeck.github.io/plugins/plugins/wavelink.fdpackage"
+  },
+  "ytmd": {
+    "message": "This plugin only works on v1.x.x versions of YTMDesktop! A future update will be released that support v2.x.x!",
+    "source": "github:freedeck/ytmd",
+    "author": "Freedeck",
+    "title": "YTMD",
+    "description": "Control your (v1.x) YTMD app from Freedeck!",
+    "version": "2.0.0",
+    "download": "https://freedeck.github.io/plugins/plugins/ytmd.fdpackage"
+  },
   "testpluginv2": {
-    "message": "This plugin could be unstable, as this is the built package straight from GitHub's latest commit.",
     "source": "github:freedeck/testpluginv2",
     "author": "Freedeck",
     "title": "Testing PluginV2",
@@ -9,7 +41,6 @@
     "download": "https://freedeck.github.io/plugins/plugins/testpluginv2.fdpackage"
   },
   "clock": {
-    "message": "This plugin could be unstable, as this is the built package straight from GitHub's latest commit.",
     "source": "github:freedeck/clock",
     "author": "Freedeck",
     "title": "Clock",
@@ -18,7 +49,6 @@
     "download": "https://freedeck.github.io/plugins/plugins/clock.fdpackage"
   },
   "myexampletheme": {
-    "message": "This plugin could be unstable, as this is the built package straight from GitHub's latest commit.",
     "source": "github:freedeck/myexampletheme",
     "author": "Freedeck",
     "title": "My Example Theme Test",
@@ -27,7 +57,6 @@
     "download": "https://freedeck.github.io/plugins/plugins/myexampletheme.fdpackage"
   },
   "devutils": {
-    "message": "This plugin could be unstable, as this is the built package straight from GitHub's latest commit.",
     "source": "github:freedeck/devutils",
     "author": "FreedeckInternals",
     "title": "DevUtils",
@@ -36,7 +65,6 @@
     "download": "https://freedeck.github.io/plugins/plugins/devutils.fdpackage"
   },
   "hafreedeck": {
-    "message": "This plugin could be unstable, as this is the built package straight from GitHub's latest commit.",
     "source": "github:freedeck/hafreedeck",
     "author": "Freedeck",
     "title": "HAFreedeck",
@@ -44,17 +72,7 @@
     "version": "1.5.0",
     "download": "https://freedeck.github.io/plugins/plugins/hafreedeck.fdpackage"
   },
-  "ytmd": {
-    "message": "This plugin could be unstable, as this is the built package straight from GitHub's latest commit.",
-    "source": "github:freedeck/ytmd",
-    "author": "Freedeck",
-    "title": "YTMD",
-    "description": "Control your (v1.x) YTMD app from Freedeck!",
-    "version": "2.0.0",
-    "download": "https://freedeck.github.io/plugins/plugins/ytmd.fdpackage"
-  },
   "twitch": {
-    "message": "This plugin could be unstable, as this is the built package straight from GitHub's latest commit.",
     "source": "github:freedeck/twitch",
     "author": "Freedeck",
     "title": "Twitch",
@@ -63,7 +81,6 @@
     "download": "https://freedeck.github.io/plugins/plugins/twitch.fdpackage"
   },
   "textbg": {
-    "message": "This plugin could be unstable, as this is the built package straight from GitHub's latest commit.",
     "source": "github:freedeck/textbg",
     "author": "Freedeck",
     "title": "TextBG",
@@ -71,17 +88,7 @@
     "version": "2.0.0",
     "download": "https://freedeck.github.io/plugins/plugins/textbg.fdpackage"
   },
-  "wavelink": {
-    "message": "This plugin could be unstable, as this is the built package straight from GitHub's latest commit.",
-    "source": "github:freedeck/wavelink",
-    "author": "Freedeck",
-    "title": "WaveLink",
-    "description": "Locally mute any source from your Elgato Wave Link device. More features coming soon.",
-    "version": "2.3.0",
-    "download": "https://freedeck.github.io/plugins/plugins/wavelink.fdpackage"
-  },
   "myinstants": {
-    "message": "This plugin could be unstable, as this is the built package straight from GitHub's latest commit.",
     "source": "github:freedeck/myinstants",
     "author": "",
     "title": "MyInstants",
@@ -90,7 +97,6 @@
     "download": "https://freedeck.github.io/plugins/plugins/myinstants.fdpackage"
   },
   "easymidi": {
-    "message": "This plugin could be unstable, as this is the built package straight from GitHub's latest commit.",
     "source": "github:freedeck/easymidi",
     "author": "Freedeck Dev",
     "title": "EasyMidi",
@@ -98,17 +104,7 @@
     "version": "1.1.0",
     "download": "https://freedeck.github.io/plugins/plugins/easymidi.fdpackage"
   },
-  "obscontrol": {
-    "message": "This plugin could be unstable, as this is the built package straight from GitHub's latest commit.",
-    "source": "github:freedeck/obscontrol",
-    "author": "Freedeck",
-    "title": "OBS Control",
-    "description": "Control your OBS Studio setup right from your Freedeck.",
-    "version": "2.0.0",
-    "download": "https://freedeck.github.io/plugins/plugins/obscontrol.fdpackage"
-  },
   "stream-chat-monitor": {
-    "message": "This plugin could be unstable, as this is the built package straight from GitHub's latest commit.",
     "source": "github:freedeck/stream-chat-monitor",
     "author": "Freedeck",
     "title": "Stream Chat Monitor",

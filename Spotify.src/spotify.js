@@ -46,9 +46,9 @@ class Spotify extends Plugin {
         this._loop = setInterval(async () => {
           await refreshPeriodicLoop(this);
 
-          const playbackState = await authenticatedRequest(
+          const playbackState = (await authenticatedRequest(
             "https://api.spotify.com/v1/me/player"
-          ) || {};
+          )) || {};
 
           const previousState = get("playbackState", {});
           if (previousState.item?.id !== playbackState?.item?.id) {

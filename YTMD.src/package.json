@@ -10,6 +10,7 @@
   "author": "Freedeck",
   "freedeck": {
     "title": "YTMD",
+    "message": "This plugin only works on v1.x.x versions of YTMDesktop! A future update will be released that support v2.x.x!",
     "package": "plugin"
   },
   "license": "ISC"
