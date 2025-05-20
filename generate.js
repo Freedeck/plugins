@@ -14,6 +14,7 @@ emptyBuild("Twitch");
 emptyBuild("TextBG");
 emptyBuild("DemoShowcase");
 emptyBuild("Spotify");
+emptyBuild("fdinternals");
 build("WaveLink",[Operations.INSTALL_DEPS_PRE_PACKAGE]);
 build("myinstants",[Operations.INSTALL_DEPS_PRE_PACKAGE]);
 build("EasyMidi",[Operations.INSTALL_DEPS_PRE_PACKAGE]);

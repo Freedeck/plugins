@@ -1,0 +1,17 @@
+{
+  "name": "fdinternals",
+  "version": "1.3.0",
+  "description": "Freedeck's internal types",
+  "main": "fdi.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "FreedeckInternals",
+  "freedeck": {
+    "title": "Freedeck Internal Types",
+    "message": "This plugin is not meant to be used unless for research/debug/testing/fun/curious purposes.",
+    "package": "plugin"
+  },
+  "license": "ISC"
+}

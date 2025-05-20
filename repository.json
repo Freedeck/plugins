@@ -96,9 +96,27 @@
     "version": "1.2.0",
     "download": "https://freedeck.github.io/plugins/plugins/twitch.fdpackage"
   },
+  "demoshowcase": {
+    "message": "Please do NOT install this if you don't know how to manually disable plugins. This is for *DEMONSTRATION* purposes. This plugin will render your Freedeck unusable, as this is meant to be used in a simple trial where you're not able to edit anything.",
+    "source": "github:freedeck/demoshowcase",
+    "author": "Freedeck",
+    "title": "Demo Showcase",
+    "description": "This plugin is used to create a demonstration environment.",
+    "version": "1.0.0",
+    "download": "https://freedeck.github.io/plugins/plugins/demoshowcase.fdpackage"
+  },
+  "fdinternals": {
+    "message": "This plugin is not meant to be used unless for research/debug/testing/fun/curious purposes.",
+    "source": "github:freedeck/fdinternals",
+    "author": "FreedeckInternals",
+    "title": "Freedeck Internal Types",
+    "description": "Freedeck's internal types",
+    "version": "1.3.0",
+    "download": "https://freedeck.github.io/plugins/plugins/fdinternals.fdpackage"
+  },
   "easymidi": {
     "source": "github:freedeck/easymidi",
-    "author": "Freedeck Dev",
+    "author": "FreedeckIndev",
     "title": "EasyMidi",
     "description": "",
     "version": "1.1.0",
