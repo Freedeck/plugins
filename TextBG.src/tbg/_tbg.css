@@ -12,5 +12,15 @@
 	color: var(--companion-left-sidebar-color);
 	border-radius: 0 0 .75rem .75rem;
 	text-align: center;
+	z-index: 1001;
 	transition-duration: .25s;
+}
+
+@keyframes pulse {
+	0%, 100% {
+		background-color: var(--companion-left-sidebar-bg);
+	}
+	50% {
+		backdrop-filter: brightness(1.5);
+	}
 }

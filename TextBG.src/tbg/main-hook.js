@@ -7,7 +7,7 @@ display.style.display = "block";
 display.classList.add('textbg-display');
 
 const callback = (e) => {
-	doDisplayShow(new String(e).length > 0)
+	doDisplayShow(new String(e).length > 0);
 	display.innerHTML = universal.cleanHTML(e);
 };
 
@@ -21,6 +21,20 @@ function doDisplayShow(is=true) {
 		display.style.top="0%";
 	}
 }
+
+universal.on("textbg-command", (command, ...args) => {
+	switch(command) {
+		case 'pulse': {
+			let pulse = args[0];
+			if(pulse === undefined) pulse = 25;
+			display.style.animation = `pulse .${pulse}s linear`;
+			setTimeout(() => {
+				display.style.animation = "";
+			}, pulse * 100);
+			break;
+		}
+	}
+});
 
 universal.on('textbg-visible', doDisplayShow);
 universal.on('textbg-display', callback);

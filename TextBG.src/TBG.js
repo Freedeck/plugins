@@ -17,6 +17,9 @@ class TBG extends Plugin {
                 if(txt != null) this.wantedText = txt;
                 io.emit("textbg-display", this.wantedText);
             });
+            socket.on("textbg-command", (cmd) => {
+                io.emit("textbg-command", cmd);
+            })
         });
     }
 }

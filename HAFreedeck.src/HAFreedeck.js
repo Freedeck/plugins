@@ -191,7 +191,7 @@ class HAF extends Plugin {
       console.error("Error in stateLoop:", err);
     }
 
-    if (this.io != null) this.io.emit("haf.statechange", output);
+    if (this.io.active != false) this.io.emit("haf.statechange", output);
   }
 
   stateChange(changeData) {}
