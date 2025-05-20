@@ -1,0 +1,19 @@
+{
+  "name": "demoshowcase",
+  "version": "1.0.0",
+  "description": "This plugin is used to create a demonstration environment.",
+  "main": "demoshowcase.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Freedeck",
+  "freedeck": {
+    "title": "Demo Showcase",
+    "message": "Please do NOT install this if you don't know how to manually disable plugins. This is for *DEMONSTRATION* purposes. This plugin will render your Freedeck unusable, as this is meant to be used in a simple trial where you're not able to edit anything.",
+    "package": "plugin"
+  },
+  "license": "ISC",
+  "dependencies": {
+  }
+}
