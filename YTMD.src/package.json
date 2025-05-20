@@ -1,6 +1,6 @@
 {
   "name": "ytmd",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "Control your (v1.x) YTMD app from Freedeck!",
   "main": "YTMD.js",
   "scripts": {

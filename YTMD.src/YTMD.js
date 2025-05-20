@@ -1,13 +1,9 @@
-const path = require("path");
-const Plugin = require(path.resolve('./src/classes/Plugin'));
+const { Plugin, HookRef, types, events, intents } = require("@freedeck/api");
 
 class YTMD extends Plugin {
     pswd;
-    constructor() {
-        // With JS Hooks, you must keep the ID of your plugin the name of the source folder.
-        super('YouTube Music Desktop', 'Freedeck', 'YTMD', false);
+    setup() {
         this.createSaveData();
-        this.version = '1.1.0';
         if(!this.getFromSaveData('pswd')) {
             this.setToSaveData('pswd', 'Change me!')
             console.log('You have not set your password for YTMD. Please set it in the plugin settings, or turn off password protection in the YTMD settings.')
@@ -83,12 +79,39 @@ class YTMD extends Plugin {
             },
         ]
         simple.forEach((button) => {
-            this.registerNewType(button.name, 'ytmd.cmd.' + button.command)
+            this.register({
+                display: button.name,
+                type: 'ytmd.cmd.' + button.command
+            })
         });
-        this.registerNewType('Music Volume', 'ytmd.slider.vol', {min: 0, max: 100, value: 50, direction:'vertical'}, 'slider');
-        this.setJSClientHook('ytmd/mainHook.js');
-        this.setJSServerHook('ytmd/mainHook.js');
+        this.register({
+            display: "Music Volume",
+            type: 'ytmd.slider.vol',
+            renderType: "slider",
+            templateData: {
+                min: 0,
+                max: 100,
+                value: 50,
+                direction: 'vertical'
+            }
+        })
         this.setJSSocketHook('ytmd/sock.js');
+        this.add(HookRef.types.client, "ytmd/mainHook.js");
+        this.add(HookRef.types.server, "ytmd/mainHook.js");
+        this.requestIntent(intents.IO);
+        this.requestIntent(intents.SOCKET);
+        this.on(events.connection, ({socket,io}) => {
+            socket.on('yvo', () => {
+                this.ytmdVol().then((vol) => {
+                    io.emit('yvo', vol);
+                })
+            })
+            this.stateChange = (...data) => {
+                const track = data[0];
+                const player = data[1];
+                io.emit('_t', `Playing: ${track.title} by ${track.author} (${player.seekbarCurrentPositionHuman}/${track.durationHuman})`);
+            }
+        })
 
         setInterval(() => {
             this.query('http://localhost:9863', this.pswd, 'track').then((res1) => {
@@ -118,7 +141,9 @@ class YTMD extends Plugin {
         } else if (interaction.type.includes('ytmd.slider.vol')) {
             this.command('http://localhost:9863', this.pswd, 'player-set-volume', parseInt(interaction.data.value)).then((res) => {
                 console.log('Sent command to YTMD!');
-                this.emitAllYVol();
+                instance.ytmdVol().then((vol) => {
+                    io.emit('yvo', vol);
+                })
             })
             .catch((err) => {
                 console.error(err)
@@ -136,7 +161,6 @@ class YTMD extends Plugin {
     }
 
     stateChange(){}
-    emitAllYVol(){}
 }
 
 module.exports = {
