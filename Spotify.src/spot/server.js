@@ -4,6 +4,10 @@ universal.on("spotify_rlco", () => {
 })
 let isTryingToLogin = false;
 universal.on("spotify_force_relogin", (data) => {
+  forceLogin(data)
+})
+
+function forceLogin(data) {
   if(isTryingToLogin) return;
   const win = window.open(data, "_blank")
   isTryingToLogin = true;
@@ -15,11 +19,12 @@ universal.on("spotify_force_relogin", (data) => {
       }
     }, 500)
   }
-})
+}
 universal.on("spotify_data", (data) =>{
   const {playbackState} = data;
   if(((playbackState.error?.status === 400 || playbackState.error?.status===401) || playbackState === "FIRST_TIME") && !isAuthorized) {
     isAuthorized = true;
+    forceLogin(playbackState.authorizationUrl)
   } else {
     isAuthorized = true;
   }

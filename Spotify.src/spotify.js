@@ -10,8 +10,7 @@ const {
 const staticTypes = require("./StaticTypes.json");
 
 const { dataPacket, get, set, remove } = require("./DataPacketManager");
-set("playbackState", {});
-set("auth", authorizationUrl);
+set("playbackState", {authorizationUrl});
 
 let shouldRegisterPlaylistsType = true;
 
@@ -55,7 +54,7 @@ class Spotify extends Plugin {
             this.notifyOfSong(playbackState);
           }
 
-          set("playbackState", playbackState);
+          set("playbackState", {...playbackState, authorizationUrl});
 
           if (
             playbackState !== null &&
@@ -112,7 +111,6 @@ class Spotify extends Plugin {
     switch (interaction.type) {
       case "sp.rlco": {
         this.io.send("spotify_rlco");
-        authorization = "";
         break;
       }
       case "sp.ntfy": {
