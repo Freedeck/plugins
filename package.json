@@ -10,9 +10,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@electron/asar": "^3.2.8",
-    "asar-bundle-runner": "^1.6.0",
-    "obs-websocket-js": "^5.0.5",
     "tar": "^7.4.3"
   }
 }
