@@ -1,6 +1,6 @@
 {
 	"name": "devutils",
-	"version": "3.1.0",
+	"version": "3.1.1",
 	"description": "",
 	"main": "DU.js",
 	"scripts": {
@@ -10,7 +10,9 @@
 	"author": "FreedeckInternals",
 	"freedeck": {
 		"title": "DevUtils",
-		"package": "plugin"
+		"message": "This plugin is outdated and disabled in favor of FDInternals, a more optimized version. You may manually re-enable it through it's package and build it yourself to use it however.",
+		"package": "plugin",
+		"disabled": true
 	},
 	"license": "ISC",
 	"dependencies": {}
