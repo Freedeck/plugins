@@ -2,6 +2,7 @@ const path = require("node:path");
 const tar = require("tar");
 const fs = require("fs");
 const { execSync } = require("node:child_process");
+const Operations = require("../../Operations");
 
 function gzipDirectory(folderPath, outputPath) {
   return new Promise((resolve, reject) => {
@@ -23,15 +24,6 @@ let _lastOpts = {};
 
 function debugLog(...args) {
   if (_lastOpts.debugOutput) console.log(...args);
-}
-
-class Operations {
-  static CLEAR_PLUGINS_PRE_PACKAGE = -1;
-  static MANIFEST_PRE_PACKAGE = 0;
-  static INSTALL_DEPS_PRE_PACKAGE = 2;
-  static RUN_POST_PACKAGE = 1;
-  static INSTALL_DEPS_POST_PACKAGE = 3;
-  static THEME_REMOVE_META_POST_PACKAGE = 4;
 }
 
 function makePackage(opt = {}) {

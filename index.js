@@ -11,6 +11,7 @@ emptyBuild("DevUtils");
 emptyBuild("HAFreedeck");
 emptyBuild("YTMD");
 emptyBuild("Twitch");
+emptyBuild("Kick");
 emptyBuild("TextBG");
 emptyBuild("DemoShowcase");
 emptyBuild("Spotify");
