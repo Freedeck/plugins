@@ -1,28 +1,28 @@
 const {makePackage, Operations} = require('./src/lib/developerApi');
-const path = require('path');
+const path = require('node:path');
+const fs = require('node:fs');
+
 const allBuiltPlugins = [];
 
 console.log("INFO / STAGE 1 >> Building / validating all plugins");
 
-emptyBuild("testpluginv2");
-emptyBuild("Clock");
-emptyBuild("MyExampleTheme");
-emptyBuild("DevUtils");
-emptyBuild("HAFreedeck");
-emptyBuild("YTMD");
-emptyBuild("Twitch");
-emptyBuild("Kick");
-emptyBuild("TextBG");
-emptyBuild("DemoShowcase");
-emptyBuild("Spotify");
-emptyBuild("fdinternals");
+build("testpluginv2", []);
+build("Clock", []);
+build("MyExampleTheme", []);
+build("DevUtils", []);
+build("HAFreedeck", []);
+build("YTMD", []);
+build("Twitch", []);
+build("Kick", []);
+build("TextBG", []);
+build("DemoShowcase", []);
+build("Spotify", []);
+build("fdinternals",[]);
 build("WaveLink",[Operations.INSTALL_DEPS_PRE_PACKAGE]);
 build("myinstants",[Operations.INSTALL_DEPS_PRE_PACKAGE]);
 build("EasyMidi",[Operations.INSTALL_DEPS_PRE_PACKAGE]);
 build("OBSControl", [Operations.INSTALL_DEPS_PRE_PACKAGE]);
 build("StreamChatMonitor", [Operations.INSTALL_DEPS_PRE_PACKAGE]);
-
-function emptyBuild(packageId) {build(packageId,[])}
 
 function build(packageId, extra=[Operations.INSTALL_DEPS_PRE_PACKAGE]) {
   allBuiltPlugins.push(packageId);
@@ -34,10 +34,7 @@ function build(packageId, extra=[Operations.INSTALL_DEPS_PRE_PACKAGE]) {
   });
 }
 
-
-
 let repository = {};
-const fs = require('fs');
 
 console.log("INFO / STAGE 2 >> Generating repository.json");
 
