@@ -138,5 +138,13 @@
     "description": "Get notifications on your Twitch, TikTok, and Kick chat all at once.",
     "version": "1.1.0",
     "download": "https://freedeck.github.io/plugins/plugins/stream-chat-monitor.fdpackage"
+  },
+  "exampleplugin": {
+    "source": "github:freedeck/exampleplugin",
+    "author": "FreedeckDev",
+    "title": "Example Plugin",
+    "description": "Learn how to use the Freedeck API!",
+    "version": "1.0.0",
+    "download": "https://freedeck.github.io/plugins/plugins/exampleplugin.fdpackage"
   }
 }

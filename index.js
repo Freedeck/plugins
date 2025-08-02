@@ -19,12 +19,12 @@ build("TextBG", []);
 build("DemoShowcase", []);
 build("Spotify", []);
 build("fdinternals",[]);
+build("ExamplePlugin", []);
 build("WaveLink",[Operations.INSTALL_DEPS_PRE_PACKAGE]);
 build("myinstants",[Operations.INSTALL_DEPS_PRE_PACKAGE]);
 build("EasyMidi",[Operations.INSTALL_DEPS_PRE_PACKAGE]);
 build("OBSControl", [Operations.INSTALL_DEPS_PRE_PACKAGE]);
 build("StreamChatMonitor", [Operations.INSTALL_DEPS_PRE_PACKAGE]);
-build("ExamplePlugin", [Operations.RUN_POST_PACKAGE]);
 
 function build(packageId, extra=[Operations.INSTALL_DEPS_PRE_PACKAGE]) {
   allBuiltPlugins.push(packageId);
