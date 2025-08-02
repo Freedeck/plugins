@@ -3,6 +3,7 @@ tmp
 
 *.asar
 *.Freedeck
+*.fdpackage
 
 
 plugins/*
