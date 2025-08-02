@@ -1,23 +1,37 @@
 const {makePackage, Operations} = require('./src/lib/developerApi');
-const path = require('path');
-const allBuiltPlugins = [];
+const path = require('node:path');
+const fs = require('node:fs');
 
-console.log("this script is in development");
+const wantedSrcFolder = process.argv[2]
+if(!wantedSrcFolder) {
+  exitError("No source folder")
+}
 
-/**
- * node build.js <file> [--o:INSTALL_DEPS_PRE_PACKAGE]
- */
+if(!fs.existsSync(wantedSrcFolder +".src")) {
+  exitError("Source ID " + wantedSrcFolder +" not found.")
+}
 
+const wantedOpts = [];
+for(const str of process.argv) {
+  if(str.startsWith("--o:")) {
+    const wantedOpt = str.split("--o:")[1];
+    if(wantedOpt in Operations) {
+      wantedOpts.push(Operations[wantedOpt])
+    } else {
+      exitError("Operation " + wantedOpt +" not recognized. Applicable types are: " + Object.keys(Operations))
+    }
+  }
+}
 
+makePackage({
+  id: wantedSrcFolder,
+  src: path.resolve(`${wantedSrcFolder}.src`),
+  out: path.resolve("./plugins"),
+  extra: wantedOpts
+});
 
-function emptyBuild(packageId) {build(packageId,[])}
-
-function build(packageId, extra=[Operations.INSTALL_DEPS_PRE_PACKAGE]) {
-  allBuiltPlugins.push(packageId);
-  makePackage({
-    id: packageId,
-    src: path.resolve(`${packageId}.src`),
-    out: path.resolve("./plugins"),
-    extra: extra
-  });
+function exitError(str) {
+  console.error(str);
+  console.log(`Usage: node build.js <sourceID> [--o:INSTALL_DEPS_PRE_PACKAGE]`);
+  process.exit(1);
 }

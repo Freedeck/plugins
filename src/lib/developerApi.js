@@ -57,25 +57,25 @@ function makePackage(opt = {}) {
       switch(str) {
         case 'valid_package':
           console.log(packagepackage.freedeck.title + " has a valid package.");
-          return;
+          break;
         case 'no_freedeck_manifest':
           console.log("The package does not contain a 'freedeck' field.");
-          return;
+          break;
         case 'invalid_id_not_lower':
           console.log("The ID (package.json -> name) must be all lowercase.");
-          return;
+          break;
         case 'no_package_title':
           console.log("The plugin does not have a given name (package.json -> freedeck['title']).");
-          return;
+          break;
         case 'no_package_type':
           console.log("The plugin does not have a given name (package.json -> freedeck['package']).");
-          return;
+          break;
         case 'invalid_package_type':
           console.log("The plugin does not have a valid type (package -> freedeck['package'] is not of valid types ['plugin', 'theme']).");
-          return;
+          break;
         case 'disabled_not_boolean':
           console.log("The plugin has a disabled status that is not a boolean (package -> freedeck['disabled'] is not of valid types [true, false]).");
-          return;
+          break;
       }
     }
   }
