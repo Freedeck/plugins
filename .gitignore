@@ -4,6 +4,6 @@ tmp
 *.asar
 *.Freedeck
 *.fdpackage
-
+repository.json
 
 plugins/*
