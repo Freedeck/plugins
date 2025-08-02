@@ -16,7 +16,6 @@ class Plugin {
   _hookLocation = "user-data/hooks/";
   _usesAsar = true;
   constructor() {
-    console.log(`[DEV ENV] Plugin constructor called.!`);
     this.name = "Loading...";
     this.author = "Loading...";
     this.id = `predropin-${Math.random().toString(36).substring(7)}`;
@@ -24,54 +23,58 @@ class Plugin {
     this.types = [];
     this._callbacks = {};
     this._intent = [];
+    console.log(`${this.id} PLUGIN OUTPUT >> Constructor called.`)
   }
 
   setPopout(popout) {
     this.popout = popout;
-    console.log("Setting popout");
+    console.log(`${this.name} PLUGIN OUTPUT >> Setting popout.`, popout)
   }
   hidePopout() {
     this.popout = "";
-    console.log("Hiding popout");
+    console.log(`${this.name} PLUGIN OUTPUT >> Hiding popout.`)
   }
   setName(name) {
     this.name = name;
-    console.log("Setting name");
+    console.log(`${this.name} PLUGIN OUTPUT >> Setting name to ${this.name}.`)
   }
   setAuthor(author) {
     this.author = author;
-    console.log("Setting author");
+    console.log(`${this.name} PLUGIN OUTPUT >> Setting author to ${this.author}.`)
   }
   setID(id) {
     this.id = id;
-    console.log("Setting ID");
+    console.log(`${this.name} PLUGIN OUTPUT >> Setting id to ${this.id}.`)
   }
   setDisabled(disabled) {
     this.disabled = disabled;
-    console.log("Setting disabled");
+    console.log(`${this.name} PLUGIN OUTPUT >> Setting disabled to ${this.disabled}.`)
   }
   
   _fd_dropin() {
-    console.log("Drop-in hit.");
+    console.log(`${this.name} PLUGIN OUTPUT >> Pre-initialization (Drop-in) started.`)
     if (this.disabled) return;
     this.hasInit = this.onInitialize();
     if (!this.hasInit) {
       console.log("Plugin didn't initialize?");
     }
     
-    console.log("Setup")
+    console.log(`${this.name} PLUGIN OUTPUT >> Running this.setup()`)
     this.setup();
-    console.log("Sending ready")
+    console.log(`${this.name} PLUGIN OUTPUT >> Sending ready event.`)
     this.emit(events.ready);
-    console.log("Done")
+    console.log(`${this.name} PLUGIN OUTPUT >> Drop-in finished.`)
   }
   onInitialize() {
+    console.log(`${this.name} PLUGIN OUTPUT >> onInitialize ran.`)
     return true;
   }
   onButton(e) {
+    console.log(`${this.name} PLUGIN OUTPUT >> Legacy this.onButton event called, upgrading to PV2.`)
     this.emit(events.button, e);
   }
   onStopping() {
+    console.log(`${this.name} PLUGIN OUTPUT >> Legacy this.onStopping event called, upgrading to PV2.`)
     this.emit(events.stopping);
   }
 
@@ -83,7 +86,7 @@ class Plugin {
     if(!Object.values(intents).includes(intent)) return;
     if(this._intent.includes(intent)) return;
     this._intent.push(intent);
-    console.log("Requesting intent", Object.keys(intents)[Object.values(intents).indexOf(intent)]);
+    console.log(`${this.name} PLUGIN OUTPUT >> Requesting intent ${Object.keys(intents)[Object.values(intents).indexOf(intent)]}`)
   }
 
   io = {
@@ -93,7 +96,7 @@ class Plugin {
   on(ev, cb) {
     if(!this._callbacks[ev]) this._callbacks[ev] = [];
     this._callbacks[ev].push(cb);
-    console.log("Added callback for", Object.keys(events)[Object.values(events).indexOf(ev)]);
+    console.log(`${this.name} PLUGIN OUTPUT >> Listening to local event '${Object.keys(events)[Object.values(events).indexOf(ev)]}'`)
   }
 
   emit(ev, ...args) {
@@ -101,7 +104,7 @@ class Plugin {
     for(const cb of this._callbacks[ev]) {
       cb(...args);
     }
-    console.log("Emitted", Object.keys(events)[Object.values(events).indexOf(ev)]);
+    console.log(`${this.name} PLUGIN OUTPUT >> Emitted local event '${Object.keys(events)[Object.values(events).indexOf(ev)]}' with data '${args}'`)
   }
   
   /**
@@ -110,7 +113,7 @@ class Plugin {
    * @param {PathLike} file 
    */
   add(type, file) {
-    console.log("Added", Object.keys(HookRef.types)[type], "hook at", file);
+    console.log(`${this.name} PLUGIN OUTPUT >> Added hook of type ${Object.keys(HookRef.types)[type]} at ${file}`)
   }
   /**
    * @param {String} hook The JS file that will be loaded into the socket handler
@@ -134,7 +137,7 @@ class Plugin {
   }
 
   addView(view, file) {
-    console.log("Added view", view, "hook at", file);
+    console.log(`${this.name} PLUGIN OUTPUT >> Added editor view hook at ${file}`)
   }
 
   /**
@@ -165,8 +168,7 @@ class Plugin {
       dt.recursive = true; 
     }
 
-    console.log(`Copying ${hp} to ${path.resolve(destination, path.basename(hook))}`);
-
+    console.log(`${this.name} PLUGIN OUTPUT >> Copying ${hp} to ${path.resolve(destination, path.basename(hook))}`)
   }
 
   /**
@@ -178,7 +180,7 @@ class Plugin {
       `tmp/_${this.id}.fdpackage`,
       file,
     );
-    fs.cpSync(this.tempImportPath, path.resolve(`user-data/hooks/${file}`));
+    console.log(`${this.name} PLUGIN OUTPUT >> Adding custom import ${file}`)
   }
 
   /**
@@ -201,17 +203,18 @@ class Plugin {
   createSaveData() {
     if (!fs.existsSync(path.resolve("./plugins"))) {
       fs.mkdirSync(path.resolve("./plugins"));
-      console.log("Failsafe created plugins folder!");
+      console.log(`${this.name} PLUGIN OUTPUT >> Created plugins folder (how is this running!??!? sorcery!)`)
     }
     if (!fs.existsSync(path.resolve(`./plugins/${this.id}`))) {
       fs.mkdirSync(path.resolve(`./plugins/${this.id}`));
-      console.log(`Created ${this.id} data folder!`);
+      console.log(`${this.name} PLUGIN OUTPUT >> Created save data folder, using ID ${this.id}`)
     }
     if (!fs.existsSync(path.resolve(`./plugins/${this.id}/settings.json`))) {
       fs.writeFileSync(
         path.resolve(`./plugins/${this.id}/settings.json`),
         JSON.stringify({}),
       );
+      console.log(`${this.name} PLUGIN OUTPUT >> Wrote empty save data.`)
     }
   }
 
@@ -226,6 +229,7 @@ class Plugin {
       fs.readFileSync(path.resolve(`./plugins/${this.id}/settings.json`)),
     );
     this.Settings[k] = data[k];
+    console.log(`${this.name} PLUGIN OUTPUT >> Retrieving ${k} from save data`)
     return data[k];
   }
 
@@ -245,6 +249,7 @@ class Plugin {
       path.resolve(`./plugins/${this.id}/settings.json`),
       JSON.stringify(data),
     );
+    console.log(`${this.name} PLUGIN OUTPUT >> Writing ${k} to save data`)
   }
 
   /**
@@ -269,14 +274,16 @@ class Plugin {
    * @param {String} renderType The type of button to render
    */
   registerNewType(name, type, templateData = {}, renderType = "button") {
-    this.types.push({
+    let data = {
       name,
       type,
       renderType,
       templateData,
       pluginId: this.id,
       display: this.name,
-    });
+    }
+    this.types.push(data)
+    console.log(`${this.name} PLUGIN OUTPUT >> Registering a new type`, data)
     return true;
   }
 
@@ -291,6 +298,7 @@ class Plugin {
    * @return {Boolean} If the type was removed successfully
    */
   deregisterType(type) {
+    console.log(`${this.name} PLUGIN OUTPUT >> Deregistering ${type}`)
     this.types = this.types.filter((t) => t.type !== type);
     return true;
   }
@@ -299,6 +307,7 @@ class Plugin {
    * End the plugin.
    */
   stop() {
+    console.log(`${this.name} PLUGIN OUTPUT >> Stopping!`)
     this.onStopping();
     this.disabled = true;
     this.stopped = true;
@@ -309,7 +318,8 @@ class Plugin {
    * @return {Boolean} If the development environment is active
    */
   isDev() {
-    return false;
+    console.log(`${this.name} PLUGIN OUTPUT >> This is a developer environment!`)
+    return true;
   }
 };
 

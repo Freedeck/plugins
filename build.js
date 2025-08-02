@@ -1,6 +1,7 @@
 const {makePackage, Operations} = require('./src/lib/developerApi');
 const path = require('node:path');
 const fs = require('node:fs');
+require('module-alias/register');
 
 const wantedSrcFolder = process.argv[2]
 if(!wantedSrcFolder) {

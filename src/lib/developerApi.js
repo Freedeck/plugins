@@ -82,8 +82,6 @@ function makePackage(opt = {}) {
 
   const {freedeck} = packagepackage;
 
-  console.log(`${opt.id} INFO >> Using alias ${freedeck.title} for package ${opt.id}`);
-
   if (opt.extra.includes(Operations.INSTALL_DEPS_PRE_PACKAGE)) {
     execSync("npm i", {
       cwd: opt.src,
@@ -133,8 +131,13 @@ function runPackage(filename) {
       gzip: true,
     })
     .then(() => {
-      const { main, name, version, author, freedeck } = require(path.resolve(tempDir, "_" + path.basename(file), "package.json"));
+      const epackage = require(path.resolve(tempDir, "_" + path.basename(file), "package.json"));
+      const { main, name, version, author, freedeck } = epackage;
       console.log(`${freedeck.title} INFO >> Extracted package to ${tempDir}`);
+      if(freedeck.icons) {
+        console.log(`${freedeck.title} INFO >> Detected an icon specification. Running.`);
+        require(path.resolve(tempDir, "_" + path.basename(file), freedeck.icons))(path.resolve(tempDir, "_" + path.basename(file)));
+      }
       if (!main) {
         console.error(`${freedeck.title} ERROR >> No main file specified in package.json.`);
         process.exit(1);

@@ -1,0 +1,18 @@
+{
+  "name": "exampleplugin",
+  "version": "1.0.0",
+  "description": "Learn how to use the Freedeck API!",
+  "main": "exampleplugin.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "FreedeckDev",
+  "license": "ISC",
+  "type": "commonjs",
+  "freedeck": {
+    "title": "Example Plugin",
+    "package": "plugin",
+    "icons": "icons.js"
+  }
+}

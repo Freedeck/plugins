@@ -10,6 +10,17 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "tar": "^7.4.3"
-  }
+    "tar": "^7.4.3",
+    "module-alias": "^2.2.3"
+  },
+  "_moduleAliases": {
+		"@root": "/",
+		"@src": "src",
+		"@routers": "src/routers",
+		"@public": "src/public",
+		"@managers": "src/managers",
+		"@handlers": "src/handlers",
+		"$": "src/utils",
+		"@freedeck": "src/classes"
+	}
 }

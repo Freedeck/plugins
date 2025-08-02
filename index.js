@@ -1,6 +1,7 @@
 const {makePackage, Operations} = require('./src/lib/developerApi');
 const path = require('node:path');
 const fs = require('node:fs');
+require('module-alias/register');
 
 const allBuiltPlugins = [];
 
@@ -23,6 +24,7 @@ build("myinstants",[Operations.INSTALL_DEPS_PRE_PACKAGE]);
 build("EasyMidi",[Operations.INSTALL_DEPS_PRE_PACKAGE]);
 build("OBSControl", [Operations.INSTALL_DEPS_PRE_PACKAGE]);
 build("StreamChatMonitor", [Operations.INSTALL_DEPS_PRE_PACKAGE]);
+build("ExamplePlugin", [Operations.RUN_POST_PACKAGE]);
 
 function build(packageId, extra=[Operations.INSTALL_DEPS_PRE_PACKAGE]) {
   allBuiltPlugins.push(packageId);
