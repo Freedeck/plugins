@@ -3,6 +3,7 @@ const tar = require("tar");
 const fs = require("fs");
 const { execSync } = require("node:child_process");
 const Operations = require("../../Operations");
+const { validate } = require("./manifestVerification");
 
 function gzipDirectory(folderPath, outputPath) {
   return new Promise((resolve, reject) => {
@@ -28,6 +29,7 @@ function debugLog(...args) {
 
 function makePackage(opt = {}) {
   _lastOpts = opt;
+  opt.extra = [...opt.extra, Operations.MANIFEST_PRE_PACKAGE]
   if (!fs.existsSync(opt.out)) {
     fs.mkdirSync(opt.out);
     debugLog(`${opt.id} INFO >> Created output directory ${opt.out}`);
@@ -48,7 +50,37 @@ function makePackage(opt = {}) {
     console.error(`${opt.id} ERROR >> Source directory ${opt.src} does not contain a package.json file.`);
     process.exit(1);
   }
-  const {freedeck} = require(path.resolve(opt.src, "package.json"));
+  const packagepackage = require(path.resolve(opt.src, "package.json"));
+
+  if(opt.extra.includes(Operations.MANIFEST_PRE_PACKAGE)) {
+    for(const str of validate(packagepackage)) {
+      switch(str) {
+        case 'valid_package':
+          console.log(packagepackage.freedeck.title + " has a valid package.");
+          return;
+        case 'no_freedeck_manifest':
+          console.log("The package does not contain a 'freedeck' field.");
+          return;
+        case 'invalid_id_not_lower':
+          console.log("The ID (package.json -> name) must be all lowercase.");
+          return;
+        case 'no_package_title':
+          console.log("The plugin does not have a given name (package.json -> freedeck['title']).");
+          return;
+        case 'no_package_type':
+          console.log("The plugin does not have a given name (package.json -> freedeck['package']).");
+          return;
+        case 'invalid_package_type':
+          console.log("The plugin does not have a valid type (package -> freedeck['package'] is not of valid types ['plugin', 'theme']).");
+          return;
+        case 'disabled_not_boolean':
+          console.log("The plugin has a disabled status that is not a boolean (package -> freedeck['disabled'] is not of valid types [true, false]).");
+          return;
+      }
+    }
+  }
+
+  const {freedeck} = packagepackage;
 
   console.log(`${opt.id} INFO >> Using alias ${freedeck.title} for package ${opt.id}`);
 

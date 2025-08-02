@@ -2,7 +2,7 @@ const {makePackage, Operations} = require('./src/lib/developerApi');
 const path = require('path');
 const allBuiltPlugins = [];
 
-console.log("INFO / STAGE 1 >> Building all plugins");
+console.log("INFO / STAGE 1 >> Building / validating all plugins");
 
 emptyBuild("testpluginv2");
 emptyBuild("Clock");
@@ -43,10 +43,7 @@ console.log("INFO / STAGE 2 >> Generating repository.json");
 
 for(const folder in allBuiltPlugins){
   const folderPath = path.resolve(__dirname, allBuiltPlugins[folder] +".src");
-  if(fs.existsSync(folderPath)){
-    console.log(`INFO >> Found plugin ${allBuiltPlugins[folder]}`);
-  }
-  else{
+  if(!fs.existsSync(folderPath)){
     console.error(`ERROR >> Source directory ${folderPath} does not exist.`);
     process.exit(1);
   }
@@ -83,7 +80,6 @@ favoritedPackages.forEach(packageId => {
 
 Object.assign(sortedRepository, repository);
 repository = sortedRepository;
-console.log(repository)
 
 fs.writeFileSync(path.resolve(__dirname, "repository.json"), JSON.stringify(repository, null, 2));
 

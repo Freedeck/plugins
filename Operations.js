@@ -9,7 +9,7 @@ module.exports = class Operations {
   static CLEAR_PLUGINS_PRE_PACKAGE = -1;
 
   /**
-   * Not available currently.  
+   * @deprecated Now added to every package upon building.
    * Checks and validate your manifest as well as preview it in the CLI before being packaged.
    */
   static MANIFEST_PRE_PACKAGE = 0;

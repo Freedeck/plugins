@@ -78,7 +78,7 @@
     "author": "FreedeckInternals",
     "title": "DevUtils",
     "description": "",
-    "version": "3.1.0",
+    "version": "3.1.1",
     "download": "https://freedeck.github.io/plugins/plugins/devutils.fdpackage"
   },
   "hafreedeck": {
@@ -96,6 +96,14 @@
     "description": "See any Twitch streamer's view count.",
     "version": "1.2.0",
     "download": "https://freedeck.github.io/plugins/plugins/twitch.fdpackage"
+  },
+  "kick": {
+    "source": "github:freedeck/kick",
+    "author": "Freedeck",
+    "title": "Kick",
+    "description": "See any Kick streamer's view count.",
+    "version": "1.0.0",
+    "download": "https://freedeck.github.io/plugins/plugins/kick.fdpackage"
   },
   "demoshowcase": {
     "message": "Please do NOT install this if you don't know how to manually disable plugins. This is for *DEMONSTRATION* purposes. This plugin will render your Freedeck unusable, as this is meant to be used in a simple trial where you're not able to edit anything.",
