@@ -1,6 +1,6 @@
 {
   "name": "spotify",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Control your Spotify from your Freedeck!",
   "main": "spotify.js",
   "scripts": {
@@ -10,6 +10,7 @@
   "author": "Freedeck",
   "freedeck": {
     "title": "Spotify",
+    "icons": "icons.js",
     "package": "plugin"
   },
   "license": "ISC"

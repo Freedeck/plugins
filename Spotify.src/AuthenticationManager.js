@@ -3,186 +3,172 @@ const { generateRandomString, base64urlEncode, sha256 } = require("./utils");
 const codeVerifier = generateRandomString(128);
 const codeChallenge = base64urlEncode(sha256(codeVerifier));
 const { app } = require("@src/http.js");
-
-const clientId = "2d0b90c5aaae4e19989e9852da3d1899";
+const path = require("node:path");
+const { dataPacket, get, set, remove } = require("./DataPacketManager");
 const authorizationUrl = new URL("https://accounts.spotify.com/authorize");
 const redirectUri = "http://127.0.0.1:5754/spotify/callback";
-let authorizationToken;
 let authorizationObject = {};
 let pluginInstance;
+let clientId = "none";
 
-authorizationUrl.search = new URLSearchParams({
-  response_type: "code",
-  client_id: clientId,
-  scope: "playlist-read-private user-read-playback-state user-modify-playback-state",
-  code_challenge_method: "S256",
-  code_challenge: codeChallenge,
-  redirect_uri: redirectUri,
-}).toString();
+function setClientId(e) {
+	clientId = e;
+	authorizationUrl.search = new URLSearchParams({
+		response_type: "code",
+		client_id: clientId,
+		scope:
+			"playlist-read-private user-read-playback-state user-modify-playback-state",
+		code_challenge_method: "S256",
+		code_challenge: codeChallenge,
+		redirect_uri: redirectUri,
+	}).toString();
+}
 
-app.get("/spotify/callback", (req, res) => {
-  const { code } = req.query;
-  getToken(code).then(async (e) => {
-    authorizationToken = e;
-    if(pluginInstance?.io) {
-      pluginInstance.io?.send(eventNames.default.reload)
-    }
-    res.send(
-      "<h1>Authentication success!</h1><p>Please return to Freedeck, close this window, if it hasn't already.</p><script>window.close()</script>"
-    );
-  });
+
+app.get("/spotify", (req, res) => {
+	pluginInstance.socket.once("spotify_pcc", () => {
+		pluginInstance.socket.emit("spotify_pcc", true);
+	});
+	res.sendFile(path.resolve("./user-data/hooks/spot/page.html"));
 });
 
-const url = "https://accounts.spotify.com/api/token";
-const getToken = async (code) => {
-  const payload = {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: new URLSearchParams({
-      client_id: clientId,
-      grant_type: "authorization_code",
-      code,
-      redirect_uri: redirectUri,
-      code_verifier: codeVerifier,
-    }),
-  };
+app.get("/spotify/callback", (req, res) => {
+	const { code } = req.query;
+	getToken(code).then(async (e) => {
+		if (pluginInstance?.io) {
+			pluginInstance.io?.send(eventNames.default.reload);
+		}
+		res.sendFile(path.resolve("./user-data/hooks/spot/authenticated.html"));
+	});
+});
 
-  const body = await fetch(url, payload);
-  const response = await body.json();
-  authorizationObject.grabbed = Date.now() / 1000;
-  authorizationObject = response;
-  return response.access_token;
+const getToken = async (code, refresh = false) => {
+	const payload = {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/x-www-form-urlencoded",
+		},
+		body: new URLSearchParams({
+			client_id: clientId,
+			grant_type: "authorization_code",
+			code,
+			redirect_uri: redirectUri,
+			code_verifier: codeVerifier,
+		}),
+	};
+
+	if (refresh) {
+		payload.body = new URLSearchParams({
+			client_id: clientId,
+			grant_type: "refresh_token",
+			refresh_token: authorizationObject.refresh_token,
+		});
+	}
+
+	const body = await fetch("https://accounts.spotify.com/api/token", payload);
+	const response = await body.json();
+	authorizationObject.grabbed = Date.now() / 1000;
+	authorizationObject = response;
+	pluginInstance.setToSaveData("ao", authorizationObject);
 };
 const rateLimitMap = new Map();
 
-async function authenticatedRequest(url, method = "GET", body = null, retries = 3) {
-  if (!authorizationToken) {
-    return { error: { status: 400 } };
-  }
+async function authenticatedRequest(
+	url,
+	method = "GET",
+	body = null,
+	retries = 3,
+) {
+	if (!authorizationObject.access_token) {
+		return { error: { status: 400 } };
+	}
 
-  const makeRequest = async (retryCount) => {
-    const currentTime = Date.now();
-    const rateLimitResetTime = rateLimitMap.get(url) || 0;
+	const makeRequest = async (retryCount) => {
+		const currentTime = Date.now();
+		const rateLimitResetTime = rateLimitMap.get(url) || 0;
 
-    if (currentTime < rateLimitResetTime) {
-      const delay = rateLimitResetTime - currentTime;
-      const message = `Rate limit exceeded. Retrying after ${delay / 1000} seconds...`;
-      console.log(message);
-      return { error: { status: 429, message } };
-    }
+		if (currentTime < rateLimitResetTime) {
+			const delay = rateLimitResetTime - currentTime;
+			const message = `Rate limit exceeded. Retrying after ${delay / 1000} seconds...`;
+			console.log(message);
+			return { error: { status: 429, message } };
+		}
 
-    const request = await fetch(url, {
-      method,
-      headers: {
-        Authorization: `Bearer ${authorizationToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: body ? JSON.stringify(body) : null,
-    }).catch((err) => {
-      const data = { error: { status: -1, message: err.message } };
-      return {
-        json: async () => data,
-        text: async () => JSON.stringify(data),
-      };
-    });
+		const request = await fetch(url, {
+			method,
+			headers: {
+				Authorization: `Bearer ${authorizationObject.access_token}`,
+				"Content-Type": "application/json",
+			},
+			body: body ? JSON.stringify(body) : null,
+		}).catch((err) => {
+			const data = { error: { status: -1, message: err.message } };
+			return {
+				json: async () => data,
+				text: async () => JSON.stringify(data),
+			};
+		});
 
-    let data;
-    try {
-      data = await request.text();
-      try {
-        if (data.length > 0) data = JSON.parse(data);
-        if (data.error) {
-          console.log(data.error.message);
-          if(pluginInstance) {
-            if(data.error.message.includes("expired")) {
-              pluginInstance.io.emit("spotify_force_relogin", authorizationUrl.toString());
-              return;
-            }
-            if(data.error.message.includes("fetch failed")) {
-              return {};
-            }
-            pluginInstance.pushNotification(data.error.message);
-          }
-        }
-      } catch (ignored) {}
-    } catch (err) {
-      console.error("Big error", err, request);
-    }
+		let data = await request.text();
+		try {
+			if (data == "Too many requests") {
+				return { error: "stop" };
+			}
+			if (data.length > 0) data = JSON.parse(data);
+			if (data.error) {
+				console.log("Error while fetching Spotify playbackState:", data);
+				if (pluginInstance) {
+					if (data.error.message.includes("expired")) {
+						getToken(null, true);
+						return data;
+					}
+					if (data.error.message.includes("Refresh token revoked")) {
+						pluginInstance.io.emit(
+							"spotify_force_relogin",
+							authorizationUrl.toString(),
+						);
+						return data;
+					}
+					if (data.error.message.includes("fetch failed")) {
+						return {};
+					}
+					if (data.error.message.includes("Server error."))
+						return get("dataPacket", {});
+					pluginInstance.pushNotification(data.error.message);
+				}
+			}
+		} catch (err) {
+			console.error("Spotify API Server Error", err, request);
+		}
 
-    if (request.status === 429 && retryCount > 0) {
-      const retryAfter = request.headers.get("Retry-After");
-      const delay = retryAfter ? Number.parseInt(retryAfter) * 1000 : 2 ** (retries - retryCount) * 1000;
-      rateLimitMap.set(url, Date.now() + delay);
-      console.log(`Rate limited. Retrying after ${delay / 1000} seconds...`);
-      await new Promise((resolve) => setTimeout(resolve, delay));
-      return makeRequest(retryCount - 1);
-    }
+		if (request.status === 429 && retryCount > 0) {
+			const retryAfter = request.headers.get("Retry-After");
+			const delay = retryAfter
+				? Number.parseInt(retryAfter) * 1000
+				: 2 ** (retries - retryCount) * 1000;
+			rateLimitMap.set(url, Date.now() + delay);
+			console.log(`Rate limited. Retrying after ${delay / 1000} seconds...`);
+			await new Promise((resolve) => setTimeout(resolve, delay));
+			return makeRequest(retryCount - 1);
+		}
 
-    return data;
-  };
+		return data;
+	};
 
-  return makeRequest(retries);
-}
-
-async function refreshPeriodicLoop(instance) {
-  const currentSecs = Date.now() / 1000;
-  const secondsSinceGrab = Math.abs(
-    currentSecs - authorizationObject.grabbed
-  );
-  if (
-    authorizationObject.expires_in &&
-    secondsSinceGrab <= authorizationObject.expires_in
-  ) {
-    const refreshToken = authorizationObject.refresh_token;
-    const refreshPayload = {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        client_id: clientId,
-        grant_type: "refresh_token",
-        refresh_token: refreshToken,
-      }),
-    };
-
-    const refreshResponse = await fetch(url, refreshPayload);
-    const refreshData = await refreshResponse.json();
-    authorizationObject = refreshData;
-    authorizationToken = refreshData.access_token;
-  }
-
-  if (
-    instance.getFromSaveData(authManSettings.saveDataTokenLabel) !== authorizationToken ||
-    instance.getFromSaveData(authManSettings.saveDataObjectLabel) !== authorizationObject
-  ) {
-    instance.setToSaveData(authManSettings.saveDataObjectLabel, authorizationObject);
-    instance.setToSaveData(authManSettings.saveDataTokenLabel, authorizationToken);
-    console.log("Updated Spotify token in save data.");
-  }
+	return makeRequest(retries);
 }
 
 async function initialize(instance) {
-  pluginInstance = instance;
-  if (instance.getFromSaveData(authManSettings.saveDataObjectLabel)) {
-    authorizationObject = instance.getFromSaveData(authManSettings.saveDataObjectLabel);
-    authorizationToken = instance.getFromSaveData(authManSettings.saveDataTokenLabel);
-  }
-}
-
-const authManSettings = {
-  saveDataTokenLabel: "at",
-  saveDataObjectLabel: "ao"
+	pluginInstance = instance;
+	if (instance.getFromSaveData("ao")) {
+		authorizationObject = instance.getFromSaveData("ao");
+	}
 }
 
 module.exports = {
-  authorizationUrl,
-  authorizationToken,
-  authorizationObject,
-  authenticatedRequest,
-
-  refreshPeriodicLoop,
-  initialize
-}
+	authorizationUrl,
+	authenticatedRequest,
+	setClientId,
+	getClientId:() => clientId,
+	initialize,
+};

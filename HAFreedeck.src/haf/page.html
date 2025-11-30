@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Freedeck: Home Assistant Settings</title>
+  <link rel="stylesheet" href="/style/style.css">
+  <style>
+    #keys {
+      display: none;
+    }
+
+    .line {
+      width: 50%;
+      border: 1px dashed rgba(255, 255, 255, 0.25);
+      background-color: transparent;
+    }
+
+    .step img {
+      width: 45%;
+    }
+
+    .textbg-display {
+      display: none;
+    }
+
+    #state-items div {
+      background-color: rgba(0, 0, 0, 0.25);
+      border-radius: var(--main-radius);
+      border: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: row;
+      gap: 1rem;
+      width: max-content;
+      cursor: pointer;
+      padding: .5rem;
+    }
+
+    #state-items {
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+    }
+
+    #boot-log-div {
+      display: none !important;
+    }
+
+    #mode-setup {
+      display: none;
+    }
+    .textbg-display {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body>
+  <center>
+    <h1>Home Assistant Settings</h1>
+    <p><small>Home Assistant is not affiliated with Freedeck, any reference to the specific name "Home Assistant" is
+        towards the <a target="_blank" href="https://github.com/Freedeck/plugins/blob/main/HAFreedeck.src">HAFreedeck
+          plugin.</a></small></p>
+    <div id="mode-review">
+      <h1>Coming soon...</h1>
+      <p>Eventually, this page will let you change your setup.</p>
+      <p>Unfortunately, for now you need to re-setup the plugin to change your states.</p>
+      <button id="resetu">Re-setup</button>
+    </div>
+    <div id="mode-setup">
+      <h1>Setup the Integration</h1>
+      <div class="line"></div>
+      <div class="step-0 step">
+        <h2>Step 1</h2>
+        <p><a target="_blank" href="https://my.home-assistant.io/redirect/profile_security/">Log into your profile's
+            Security settings (click here or go to your HA instance, then click your name, then Security at the top.)
+          </a>
+        </p>
+        <p>Once logged in, you should see this dashboard:</p>
+        <img src="/user-data/hooks/haf/msg01.png" alt="HA Security Dashboard">
+        <button class="advance-step">I've logged in!</button>
+      </div>
+      <div class="step-1 step">
+        <h2>Step 2</h2>
+        <p>Create a new Long Lived Access Token</p>
+        <p>Here, you can input any name.</p>
+        <p>Once you've inputted the name, press OK.</p>
+        <img src="/user-data/hooks/haf/msg02.png" alt="LLAT">
+        <button class="advance-step">I've made the app!</button>
+      </div>
+      <div class="step-2 step">
+        <h2>Step 3</h2>
+        <p>Now, input that access token and your HA instance IP/URL. It will be saved to the Home Assistant plugin
+          settings.
+        </p>
+        <input type="text" placeholder="Enter URL here (ex: 192.168.1.1:8123)" id="hclient-url">
+        <input type="text" placeholder="Enter token here" id="hclient-token">
+        <p>You can click the clipboard icon in the popup to copy it to your clipboard.</p>
+        <br>
+        <img src="/user-data/hooks/haf/msg03.png" alt="LLAT Made">
+        <button id="test-connection">Test Connection</button>
+      </div>
+      <div class="step-3 step">
+        <h2>Step 4</h2>
+        <p>We have established a connection to your Home Assistant instance!</p>
+        <p>Now, please pick the states you want to monitor!</p>
+        <button id="finish">These look good! (Finish)</button>
+        <p class="load-status"></p>
+        <input placeholder="Search for a specific state by ID or state." type="text" id="state-search">
+        <div id="state-items"></div>
+      </div>
+    </div>
+  </center>
+
+  <script type="module" src="/socket.io/socket.io.js"></script>
+  <script type="module" src="/app/universal.js"></script>
+  <script type="module">
+    await universal.init("haf_auth_mm", "Freedeck + Home Assistant")
+    universal.on("haf.setup_status", (e) => {
+      if(resetting)return;
+      if (e) {
+        document.querySelector("#mode-setup").style.display = 'none';
+        document.querySelector("#mode-review").style.display = 'block';
+      }
+      else {
+        document.querySelector("#mode-setup").style.display = 'block';
+        document.querySelector("#mode-review").style.display = 'none';
+      }
+    })
+
+    let resetting = false;
+    document.querySelector("#resetu").onclick = (e)=> {
+      resetting = true;
+      document.querySelector("#mode-setup").style.display = 'block';
+        document.querySelector("#mode-review").style.display = 'none';
+    }
+    const tcb = document.querySelector("#test-connection");
+    const loadState = document.querySelector(".load-status")
+    const stitems = document.querySelector("#state-items");
+
+    const stateItems = [];
+
+    const saved = [];
+
+    document.querySelector("#state-search").oninput = (e) => {
+      const query = e.target.value.toLowerCase();
+      let show = [];
+      const norm = (s) => s?.toLowerCase().replace(/\s+/g, "");
+      const q = norm(query);
+      for (const i of stateItems) {
+        if (norm(i.attributes?.friendly_name || "").includes(q) || norm(i.entity_id).includes(q) || norm(i.state).includes(q)) {
+          show.push(i.resDiv)
+        }
+      }
+      document.querySelectorAll(".state-item").forEach((e) => e.style.display = 'none');
+      for (const i of show) { i.style.display = 'flex' }
+    }
+
+    tcb.onclick = () => {
+      tcb.innerText = 'Connecting...';
+      let url = document.querySelector("#hclient-url").value;
+      const token = document.querySelector("#hclient-token").value;
+      if (!url.endsWith("/")) url += "/";
+      const ws = new WebSocket("ws://192.168.4.180:8123/api/websocket");
+
+      ws.onopen = () => {
+
+        ws.send(JSON.stringify({
+          type: "auth",
+          access_token: token
+        }));
+
+        let id = 1;
+        ws.onmessage = (e) => {
+          const data = JSON.parse(e.data);
+          if (data.type == 'auth_ok') {
+            currentStep++;
+            document.querySelectorAll(".step:not(.step-" + currentStep + ")").forEach((e) => e.style.display = 'none');
+            document.querySelector(".step-" + currentStep).style.display = 'block';
+            loadState.innerText = 'Give the page a second to load your states, this can take long if you have a lot!';
+            ws.send(JSON.stringify({
+              type: "get_states",
+              id,
+            }))
+          } else if (data.type == 'auth_invalid') {
+            tcb.innerText = 'Invalid token!';
+          }
+
+          if (data.type === 'result' && data.id == id) {
+            for (const result of data.result) {
+              const { entity_id, state, attributes } = result;
+              const { friendly_name } = attributes;
+              const resDiv = document.createElement("div");
+              resDiv.classList.add("state-item");
+
+              resDiv.setAttribute("id", entity_id.toLowerCase());
+              resDiv.setAttribute("state", state.toLowerCase());
+
+              const entName = document.createElement("p");
+              const entId = document.createElement("small");
+              const entSt = document.createElement("p");
+
+              entName.innerText = friendly_name;
+              entId.innerText = entity_id;
+              entSt.innerText = state;
+
+              resDiv.appendChild(entName);
+              resDiv.appendChild(entId);
+              resDiv.appendChild(entSt);
+
+              stitems.appendChild(resDiv);
+              const self = { entity_id, state, attributes, resDiv }
+              stateItems.push(self)
+
+              resDiv.onclick = (e) => {
+                let added = false;
+                if (saved.includes(self)) {
+                  saved.splice(saved.indexOf(self), 1);
+                  resDiv.style.backgroundColor = 'rgba(0,0,0,0.25)'
+                } else {
+                  added = true;
+                  saved.push(self);
+                  resDiv.style.backgroundColor = 'rgba(255,255,255,0.25)'
+                }
+                if (saved.length > 0) {
+                  loadState.innerText = 'Selected: ';
+                  for (const i of saved) {
+                    let out = i.entity_id;
+                    if (i.attributes?.friendly_name) out = i.attributes.friendly_name
+                    loadState.innerText += out + ', ';
+                  }
+                } else {
+                  loadState.innerText = 'Scroll down or search and pick the sensors you want to view.'
+                }
+              }
+            }
+          }
+        }
+      };
+      document.querySelector("#finish").onclick = () => {
+        const stt = saved.map((e) => e.entity_id)
+        universal.send("haf.set_settings", {
+          token,
+          url,
+          statesToTrack: stt
+        })
+      }
+    }
+
+
+    let currentStep = -1;
+    document.querySelectorAll(".advance-step").forEach((e) => {
+      e.onclick = () => {
+        currentStep++;
+        document.querySelectorAll(".step:not(.step-" + currentStep + ")").forEach((e) => e.style.display = 'none');
+        document.querySelector(".step-" + currentStep).style.display = 'block';
+      }
+    })
+    currentStep++;
+    document.querySelectorAll(".step:not(.step-" + currentStep + ")").forEach((e) => e.style.display = 'none');
+    document.querySelector(".step-" + currentStep).style.display = 'block';
+  </script>
+</body>
+
+</html>

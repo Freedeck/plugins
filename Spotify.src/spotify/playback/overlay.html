@@ -1,0 +1,276 @@
+<style>
+  #spotify-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+    background-color: rgba(12, 12, 12, 0.25);
+    border: var(--generic-border);
+    border-radius: var(--main-radius);
+    width: max-content;
+    height: 6.5vh;
+    padding: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  #songinfo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+  }
+
+  #songinfo-info {
+    display: flex;
+    flex-direction: row;
+    align-items: start;
+    justify-content: start;
+    border-radius: var(--main-radius);
+    /* transform: translateX(-50%); */
+    /* width: 50%; */
+    /* margin-top: .5rem; */
+    height: max-content;
+  }
+
+  .lyric {
+    transition: opacity 0.25s ease;
+    opacity: 1;
+    min-height: 1rem;
+    max-height: 1rem;
+    height: 1rem;
+    flex-shrink: 1;
+    min-width: 0;
+  }
+
+  .lyric.fade-out {
+    opacity: 0;
+  }
+
+  .textbg-display {
+    display: none !important;
+  }
+
+  #pbt {
+    height: 5px;
+    border-radius: var(--main-radius);
+    outline: none;
+    -webkit-appearance: none;
+    --thumb-width: 0%;
+    background: linear-gradient(to right, var(--indicator-green) var(--thumb-width), var(--slider-background) var(--thumb-width));
+    /* position: absolute; */
+    /* bottom: calc(var(--main-radius) * 1.2); */
+    width: 50%;
+  }
+
+  #pbt::-webkit-slider-thumb,
+  #pbt::-moz-range-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    /* border-radius: 50%; */
+    cursor: pointer;
+  }
+
+  .song-image {
+    /* position: absolute;
+    top: var(--font-size);
+    right: var(--font-size); */
+    /* width: 25%; */
+    height: 100%;
+    border-radius: calc(var(--main-radius) / 2);
+  }
+</style>
+
+<freedeck-dash-module id="spotify-container">
+  <img class="song-image"></img>
+  <div id="songinfo-container">
+    <div class="ippo">
+      <div id="songinfo-info">
+        <i class="artists">Artists</i>
+        &nbsp;-&nbsp;
+        <span class="songtitle">Song</span>
+        <!-- <small class="albumtitle">on Album</small> -->
+      </div>
+      <div class="pbt-container">
+        <small class="pbt"></small>
+        -
+        <small>
+          <span class="ps"></span>
+          on
+          <span class="on-device"></span>
+        </small>
+      </div>
+      <input type="range" id="pbt">
+    </div>
+    <small class="lyric"></small>
+  </div>
+</freedeck-dash-module>
+
+
+
+<script type="module">
+  let isAuthorized = false;
+  const settingsEle = document.querySelector("html[ctxl-id='/user-data/dash-modules/spotify/playback/overlay']")
+  const settings = JSON.parse(settingsEle.getAttribute("settings"));
+
+  if (settings.background === "transp") {
+    document.querySelector("#spotify-container").style.backgroundColor = 'rgba(12, 12, 12, 0.25)';
+  } else if (settings.background === "matte") {
+    document.querySelector("#spotify-container").style.backgroundColor = 'rgb(12, 12, 12)';
+  }
+
+  settingsEle.overlaySettingsChanged = (settings) => {
+    if (settings.background === "transp") {
+      document.querySelector("#spotify-container").style.backgroundColor = 'rgba(12, 12, 12, 0.25)';
+    } else if (settings.background === "matte") {
+      document.querySelector("#spotify-container").style.backgroundColor = 'var(--modal-bg)';
+    }
+  }
+
+  const playState = document.querySelector(".ps")
+  const title = document.querySelector(".songtitle")
+  const album = document.querySelector(".albumtitle")
+  const artistsT = document.querySelector(".artists")
+  const lyricElement = document.querySelector(".lyric")
+
+  let currentProgressMs = 0;
+  let lastUpdateTimestamp = 0;
+  let playbackIsPlaying = false;
+
+  // Function to get current playback progress interpolated
+  function getCurrentPlaybackProgressMs() {
+    if (playbackIsPlaying) {
+      const now = performance.now();
+      const elapsed = now - lastUpdateTimestamp;
+      return currentProgressMs + elapsed;
+    }
+    return currentProgressMs;
+  }
+  const pbt = document.getElementById("pbt");
+
+  universal.on("spotify_data", (data) => {
+    const { playbackState } = data;
+    if (((playbackState.error?.status === 400 || playbackState.error?.status === 401) || playbackState === "FIRST_TIME") && !isAuthorized) {
+      isAuthorized = true;
+    } else {
+      isAuthorized = true;
+    }
+    if (!playbackState.item) return;
+
+    playbackIsPlaying = playbackState.is_playing;
+    currentProgressMs = playbackState.progress_ms || 0;
+    lastUpdateTimestamp = performance.now();
+
+    const albumName = playbackState.item?.album?.name;
+    document.querySelector(".song-image").src = playbackState.item?.album?.images[0].url;
+    const artists = getArtistsNames(playbackState.item);
+    const itemName = playbackState.item.name;
+    const showing = `${artists} - ${itemName}`
+
+    title.innerText = playbackState.item.name;
+    artistsT.innerText = artists
+    if (playbackState.is_playing === false) {
+      playState.innerText = 'Paused';
+    } else {
+      playState.innerText = 'Playing';
+    }
+    const ctime = msToTimestamp(playbackState.progress_ms);
+    const ttime = msToTimestamp(playbackState.item.duration_ms);
+    document.querySelector(".pbt").innerText = ctime + " / " + ttime;
+    document.querySelector(".on-device").innerText = playbackState.device.name;
+
+    if (playbackState.shuffle_state === true) {
+      makeAll("sp.shf", "green");
+    } else {
+      makeAll("sp.shf", "none");
+    }
+
+    pbt.min = 0;
+    pbt.max = playbackState.item.duration_ms;
+    pbt.value = currentProgressMs;
+    const playbackPercent = (currentProgressMs / playbackState.item.duration_ms) * 100;
+    pbt.style.setProperty('--thumb-width', `${playbackPercent}%`);
+
+
+    const isPaused = playbackState.is_playing ? "" : " (Paused)";
+
+    imgs = [];
+
+  })
+
+  universal.on("spotify-current-lyric", (e) => {
+    if (e == '') {
+      lyricElement.style.display = 'none';
+    } else if (lyricElement.style.display == 'none') {
+      lyricElement.style.display = 'block';
+    }
+    lyricElement.innerText = e;
+  })
+
+  function makeAll(type, color) {
+    for (const { element } of getAllOfType(type)) {
+      if (color === "none") removeIndicatorFromButton(element)
+      else setIndicatorToButton(element, color);
+    }
+  }
+
+  function timestampToMs(timestamp) {
+    const [minutes, seconds] = timestamp.split(':');
+    const [secondsPart, milliseconds] = seconds.split('.');
+    const totalMinutes = Number.parseInt(minutes);
+    const totalSeconds = Number.parseInt(secondsPart);
+    const totalMilliseconds = Number.parseInt(milliseconds);
+    return (totalMinutes * 60 * 1000) + (totalSeconds * 1000) + totalMilliseconds;
+  }
+
+  let imgs = [];
+
+  function msToTimestamp(ms) {
+    const minutes = Math.floor(ms / 60000);
+    const seconds = ((ms % 60000) / 1000).toFixed(0);
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  }
+
+  function getArtistsNames(playbackItem) {
+    let output = "";
+    const lastArtist = playbackItem.artists[playbackItem.artists.length - 1];
+    for (const artist of playbackItem.artists) {
+      output += artist.name
+      if (artist.name !== lastArtist.name) output += ", "
+    }
+    return output;
+  }
+
+  function setIndicatorToButton(btn, indicator) {
+    if (!btn.querySelector('#sp_indi')) {
+      let indicator = document.createElement('div');
+      indicator.id = 'sp_indi';
+      btn.appendChild(indicator);
+    }
+    const cl = btn.querySelector('#sp_indi').classList;
+    cl.remove('indicator-red');
+    cl.remove('indicator-green');
+    cl.remove('indicator-yellow');
+    cl.add('indicator-' + indicator);
+  }
+
+  function removeIndicatorFromButton(btn) {
+    if (btn.querySelector('#sp_indi')) {
+      btn.querySelector('#sp_indi').remove();
+    }
+  }
+
+  function getAllOfType(type) {
+    let out = [];
+    document.querySelectorAll('.button').forEach((btn) => {
+      let inter = JSON.parse(btn.getAttribute('data-interaction'));
+      if (inter != null && btn.id !== 'editor-btn') {
+        if (inter.type == type) out.push({ element: btn, interaction: inter })
+      }
+    });
+    return out;
+  }
+
+</script>

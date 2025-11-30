@@ -17,6 +17,7 @@ build("Twitch", []);
 build("Kick", []);
 build("TextBG", []);
 build("DemoShowcase", []);
+build("dynamic-icons", []);
 build("Spotify", []);
 build("fdinternals",[]);
 build("ExamplePlugin", []);

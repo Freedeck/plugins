@@ -1,4 +1,4 @@
-const {Plugin, events, intents} = require("@freedeck/api");
+const {Plugin, HookRef, events, intents} = require("@freedeck/api");
 const connectRouter = require("@routers/connect");
 const sEvents = require("@handlers/eventNames");
 const { compileWebpack } = require("@src/webpack");
@@ -43,6 +43,9 @@ class FDInternals extends Plugin {
             display: 'None',
             type: 'fd.none'
         })
+
+        this.add(HookRef.types.dashModule, "fdi-dash")
+        this.add(HookRef.types.view, "test")
 
         return true;
     }

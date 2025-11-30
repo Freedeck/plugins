@@ -1,7 +1,7 @@
 {
   "name": "fdinternals",
-  "version": "1.4.0",
-  "description": "Freedeck's internal utilities",
+  "version": "1.5.0",
+  "description": "Freedeck's internal utilities, used for testing, debugging, and developing.",
   "main": "fdi.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -10,7 +10,6 @@
   "author": "Freedeck",
   "freedeck": {
     "title": "Freedeck Internal Utilities",
-    "message": "This plugin is the successor to DevUtils.",
     "package": "plugin"
   },
   "license": "ISC"

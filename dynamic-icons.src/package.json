@@ -1,15 +1,16 @@
 {
-  "name": "hafreedeck",
-  "version": "1.7.0",
-  "description": "See the state of Home Assistant sensors in Freedeck.",
-  "main": "HAFreedeck.js",
+  "name": "dynamic-icons",
+  "version": "1.5.0",
+  "description": "Freedeck testing dynamic icons.",
+  "main": "fdi.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "Freedeck",
   "freedeck": {
-    "title": "Home Assistant",
+    "title": "Dynamic Icons",
+    "icons": "icons.js",
     "package": "plugin"
   },
   "license": "ISC"

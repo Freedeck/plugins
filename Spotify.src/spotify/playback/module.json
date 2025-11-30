@@ -1,0 +1,17 @@
+{
+  "name": "Currently Playing Song",
+  "view": "view",
+  "overlay": "overlay",
+  "settings": {
+    "background": {
+      "title": "Background Color",
+      "description": "Choose the widget's background color",
+      "type": "select",
+      "default": "transp",
+      "options": {
+        "transp": "Transparent",
+        "matte": "Matte"
+      }
+    }
+  }
+}

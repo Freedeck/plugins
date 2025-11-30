@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spotify Setup</title>
+  <link rel="stylesheet" href="/style/style.css">
+  <style>
+    #keys {
+      display: none;
+    }
+    .line {
+      width: 50%;
+      border: 1px dashed rgba(255,255,255,0.25);
+      background-color: transparent;
+    }
+    .step img {
+      width: 45%;
+    }
+  </style>
+</head>
+
+<body>
+  <center>
+    <p class="state">page loading!</p>
+    <h1>Freedeck + Spotify</h1>
+    <p><small>Spotify is not affiliated with Freedeck, any reference to the specific name "Spotify" is towards the <a
+          href="https://github.com/Freedeck/plugins/blob/main/Spotify.src" target="_blank">Spotify plugin.</a></small></p>
+    <p>Here's how to setup your integration. <details>
+      <summary>Why do I need to do this?</summary>
+      Spotify recently pushed new requirements (250k+ active users per month) which doesn't allow Freedeck to become a
+      large Spotify API app.
+    </details></p>
+    <div class="line"></div>
+    <div class="step-0 step">
+      <h2>Step 1</h2>
+      <p><a target="_blank" href="https://developer.spotify.com/dashboard">Log into the Spotify Developer Dashboard (click here or go to <code>https://developer.spotify.com/dashboard</code>) </a></p>
+      <p>Once logged in, you should see this dashboard:</p>
+      <img src="/user-data/hooks/spot/msg01.png" alt="SDD Dashboard">
+      <button class="advance-step">I've logged in!</button>
+    </div>
+    <div class="step-1 step">
+      <h2>Step 2</h2>
+      <p><a target="_blank" href="https://developer.spotify.com/dashboard/create">Create a new app (click here or go to <code>https://developer.spotify.com/dashboard/create</code>) </a></p>
+      <p>Here, you can input any name and description.</p>
+      <blockquote>It is very important that you set the Redirect URI to <input id="cbu" type="text" value="http://127.0.0.1:5754/spotify/callback" /> (click to copy) and enable the <code>Web API</code> and <code>Web Playback SDK</code>.</blockquote>
+      <p>Once you type the Redirect URI, press Add.</p>
+      <p>Once you've inputted all the data, press Save.</p>
+      <img src="/user-data/hooks/spot/msg02.png" alt="SDD App">
+      <button class="advance-step">I've made the app!</button>
+    </div>
+    <div class="step-2 step">
+      <h2>Step 3</h2>
+      <p>Now, input your app's Client ID. It will be saved to the Spotify plugin settings.</p>
+      <input type="text" default="ENTER ID HERE!" id="client-id">
+      <p>You can click the circled clipboard icon in the dashboard to copy it to your clipboard.</p>
+      <br>
+      <img src="/user-data/hooks/spot/msg03.png" alt="SDD App">
+      <button id="test-connection">Test Connection</button>
+    </div>
+    <div class="step-3 step">
+      <h2>Step 4</h2>
+      <p>If you see a pop up window from Spotify, hit Authorize. Freedeck will now take care of the rest!</p>
+    </div>
+  </center>
+
+  <script type="module" src="/socket.io/socket.io.js"></script>
+  <script type="module" src="/app/universal.js"></script>
+  <script type="module">
+    const state = document.querySelector(".state");
+    const setState = (e) => state.innerText = e;
+    document.querySelector("#test-connection").onclick = () => {
+      universal.send("sp_cset", document.querySelector("#client-id").value)
+      currentStep++;
+        document.querySelectorAll(".step:not(.step-" + currentStep + ")").forEach((e) => e.style.display='none');
+        document.querySelector(".step-" + currentStep).style.display = 'block';
+    }
+
+    setState("Initializing Freedeck")
+    await universal.init("spot_auth_mm", "Freedeck + Spotify")
+    setState("Checking for connection to Spotify plugin")
+    document.querySelector("#cbu").value = "http://127.0.0.1:5754/spotify/callback"
+
+    universal.on("spotify_data", (e) => {
+      if(e.playbackState) {
+        window.close();
+      }
+    })
+
+    let currentStep = -1;
+    document.querySelectorAll(".advance-step").forEach((e) => {
+      e.onclick = () => {
+        currentStep++;
+        document.querySelectorAll(".step:not(.step-" + currentStep + ")").forEach((e) => e.style.display='none');
+        document.querySelector(".step-" + currentStep).style.display = 'block';
+      }
+    })
+currentStep++;
+        document.querySelectorAll(".step:not(.step-" + currentStep + ")").forEach((e) => e.style.display='none');
+        document.querySelector(".step-" + currentStep).style.display = 'block';
+    universal.once("spotify_pcc", (d) => {
+      if (d == true) {
+        state.style.display = 'none';
+      }
+    })
+    universal.send("spotify_pcc")
+  </script>
+</body>
+
+</html>
