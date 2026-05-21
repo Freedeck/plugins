@@ -162,7 +162,7 @@
       let url = document.querySelector("#hclient-url").value;
       const token = document.querySelector("#hclient-token").value;
       if (!url.endsWith("/")) url += "/";
-      const ws = new WebSocket("ws://192.168.4.180:8123/api/websocket");
+      const ws = new WebSocket("ws://" + url + "/api/websocket");
 
       ws.onopen = () => {
 

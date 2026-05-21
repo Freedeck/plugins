@@ -1,6 +1,6 @@
 {
   "name": "hafreedeck",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "See the state of Home Assistant sensors in Freedeck.",
   "main": "HAFreedeck.js",
   "scripts": {
