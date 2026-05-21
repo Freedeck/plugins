@@ -264,7 +264,7 @@ async function emulateTypes(pluginData, typeData, callback) {
         }
         testPlugin.emit(events.ready);
         emulatedPlugins[testPlugin.id] = testPlugin;
-        pluginsManager._plc.set(testPlugin.id, {file:"",instance:testPlugin})
+        pluginsManager._pluginCache.set(testPlugin.id, {file:"",instance:testPlugin})
 
     }
     emulatedPlugins[id].register(typeData);

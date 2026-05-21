@@ -1,6 +1,6 @@
 {
   "name": "demoshowcase",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "This plugin is used to create a demonstration environment.",
   "main": "demoshowcase.js",
   "scripts": {
