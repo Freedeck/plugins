@@ -161,7 +161,8 @@
       tcb.innerText = 'Connecting...';
       let url = document.querySelector("#hclient-url").value;
       const token = document.querySelector("#hclient-token").value;
-      const ws = new WebSocket("ws://" + url + "/api/websocket");
+      if (!url.endsWith("/")) url += "/";
+      const ws = new WebSocket("ws://" + url + "api/websocket");
 
       ws.onopen = () => {
 
