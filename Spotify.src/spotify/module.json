@@ -1,6 +1,7 @@
 {
   "name": "Spotify",
   "views": [
-    "playback"
+    "playback",
+    "playback-fill"
   ]
 }

@@ -6,41 +6,79 @@
     gap: 1rem;
     background-color: rgba(12, 12, 12, 0.25);
     border: var(--generic-border);
-    border-radius: var(--main-radius);
-    width: max-content;
-    height: 6.5vh;
-    padding: 1rem;
+    border-radius: 0;
+    width: 100vw;
+    height: 100vh;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
+html[ctxl-id="/user-data/dash-modules/spotify/playback-fill/view"] {
+  top: 0 !important;
+  left: 0 !important;
+}
+
+  html[ctxl-id="/user-data/dash-modules/spotify/playback-fill/view"],
+  html[ctxl-id="/user-data/dash-modules/spotify/playback-fill/view"] body {
+    width: 100vw !important;
+    padding: 0;
+    margin: 0;
+  }
+
+  #queue-container {
+    display: flex;
+    flex-direction: column;
+    gap: .25rem;
+    width: min-content;
+  }
+
+  .up-next {
+    background-color: rgba(0,0,0,0.25);
+    border: var(--generic-border);
+    padding: .25rem;
+    border-radius: calc(var(--main-radius) / 2) 0 0 calc(var(--main-radius) / 2);
+  }
+
   #songinfo-container {
     display: flex;
     flex-direction: column;
-    align-items: start;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    height: 80%;
+    width: 33%;
   }
 
   #songinfo-info {
     display: flex;
-    flex-direction: row;
-    align-items: start;
-    justify-content: start;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     border-radius: var(--main-radius);
-    /* transform: translateX(-50%); */
-    /* width: 50%; */
-    /* margin-top: .5rem; */
     height: max-content;
+  }
+
+  .pbt-container {
+    font-size: large;
   }
 
   .lyric {
     transition: opacity 0.25s ease;
     opacity: 1;
-    min-height: 1rem;
-    max-height: 1rem;
-    height: 1rem;
     flex-shrink: 1;
     min-width: 0;
+    font-size: large;
+    max-width: 80%;
+    white-space: normal; 
+    word-wrap: break-word;
+    
+    min-height: 1.2rem;
+    max-height: 3.6rem;
+    height: auto;
+    transition-duration: .25s;
+    padding: .25rem;
+    border-radius: .75rem;
   }
 
   .lyric.fade-out {
@@ -49,6 +87,15 @@
 
   .textbg-display {
     display: none !important;
+  }
+
+  @keyframes tpulse {
+    0%, 100% {
+      color: white;
+    }
+    50% {
+      color: #afafaf;
+    }
   }
 
   #pbt {
@@ -61,6 +108,19 @@
     /* position: absolute; */
     /* bottom: calc(var(--main-radius) * 1.2); */
     width: 50%;
+  }
+
+  .song-image-bg {
+    filter: blur(2rem);
+    scale: 115%;
+    animation: error-bg 15s linear infinite;
+    width: 100vw;
+    height: 100vh;
+    top: 0;
+    bottom: 0;
+    position: absolute;
+    z-index: -1;
+    transition-duration: 1s;
   }
 
   #pbt::-webkit-slider-thumb,
@@ -78,20 +138,42 @@
     top: var(--font-size);
     right: var(--font-size); */
     /* width: 25%; */
-    height: 100%;
+    height: 80%;
+    max-width: 50%;
+    margin-left: calc(8%);
     border-radius: calc(var(--main-radius) / 2);
+    box-shadow:0px 0px 50px -16px #000000;
+  }
+
+  button {
+    border: none;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    width: calc(var(--button-width) / 1.5) !important;
+    height: calc(var(--button-width) / 1.5) !important;
+  }
+
+  #sp_indi {
+    display: none;
+  }
+
+  .toast, .warnings {
+    display: none !important;
+  }
+  body {
+    background: black;
   }
 </style>
 
 <freedeck-dash-module id="spotify-container">
   <img class="song-image"></img>
+  <img class="song-image-bg">
   <div id="songinfo-container">
     <div class="ippo">
       <div id="songinfo-info">
         <i class="artists">Artists</i>
-        &nbsp;-&nbsp;
-        <span class="songtitle">Song</span>
         <!-- <small class="albumtitle">on Album</small> -->
+        <span class="songtitle">Song</span>
       </div>
       <div class="pbt-container">
         <small class="pbt"></small>
@@ -105,35 +187,40 @@
       <input type="range" id="pbt">
     </div>
     <small class="lyric"></small>
+    <div class="flex-wrap-r">
+      <button class="button" data-interaction='{"type":"sp.prev"}' style="background-image:url('/user-data/icon-registry/previous.png')" onclick="keypress('sp.prev')"></button>
+      <button class="button" data-interaction='{"type":"sp.playpause"}' style="background-image:url('/user-data/icon-registry/play.png')" onclick="keypress('sp.playpause')"></button>
+      <button class="button" data-interaction='{"type":"sp.next"}' style="background-image:url('/user-data/icon-registry/next.png')" onclick="keypress('sp.next')"></button>
+    </div>
+  </div>
+  <div id="queue-container">
+
   </div>
 </freedeck-dash-module>
 
-
-
 <script type="module">
   let isAuthorized = false;
-  const settingsEle = document.querySelector("html[ctxl-id='/user-data/dash-modules/spotify/playback/overlay']")
-  const settings = JSON.parse(settingsEle.getAttribute("settings"));
+  const settingsEle = document.querySelector("html[ctxl-id='/user-data/dash-modules/spotify/playback-fill/view']")
+  let settings = JSON.parse(settingsEle.getAttribute("settings"));
 
-  if (settings.background === "transp") {
-    document.querySelector("#spotify-container").style.backgroundColor = 'rgba(12, 12, 12, 0.25)';
-  } else if (settings.background === "matte") {
-    document.querySelector("#spotify-container").style.backgroundColor = 'rgb(12, 12, 12)';
+  window.keypress = (type) => {
+    universal.send(universal.events.keypress, {
+			event: {trusted:true},
+			btn: {
+        type
+      },
+		});
   }
 
-  settingsEle.overlaySettingsChanged = (settings) => {
-    if (settings.background === "transp") {
-      document.querySelector("#spotify-container").style.backgroundColor = 'rgba(12, 12, 12, 0.25)';
-    } else if (settings.background === "matte") {
-      document.querySelector("#spotify-container").style.backgroundColor = 'var(--modal-bg)';
-    }
+  settingsEle.overlaySettingsChanged = (_settings) => {
+    settings = _settings;
   }
 
   const playState = document.querySelector(".ps")
   const title = document.querySelector(".songtitle")
   const album = document.querySelector(".albumtitle")
   const artistsT = document.querySelector(".artists")
-  const songImg = document.querySelector(".song-image")
+  const queueContainer = document.querySelector("#queue-container");
   const lyricElement = document.querySelector(".lyric")
 
   let currentProgressMs = 0;
@@ -151,8 +238,15 @@
   }
   const pbt = document.getElementById("pbt");
 
+  const pbtDisplay = document.querySelector(".pbt");
+  const deviceOn = document.querySelector(".on-device")
+
+  const lastDisplay = {};
+
+  const songImageEle = document.querySelector(".song-image");
+  const songImageBg = document.querySelector(".song-image-bg");
+
   universal.on("spotify_data", (data) => {
-    if (!document.querySelector("#spotify-container")) return;
     const { playbackState } = data;
     if (((playbackState.error?.status === 400 || playbackState.error?.status === 401) || playbackState === "FIRST_TIME") && !isAuthorized) {
       isAuthorized = true;
@@ -166,7 +260,25 @@
     lastUpdateTimestamp = performance.now();
 
     const albumName = playbackState.item?.album?.name;
-    songImg.src = playbackState.item?.album?.images[0].url;
+    const songImage = playbackState.item?.album?.images[0].url;
+    songImageEle.src = songImage;
+
+    if (settings.background === "blur") {
+      songImageBg.style.backgroundImage = `url(${songImage})`;
+    } else if (settings.background === "aver") {
+      const imageObject = new Image()
+      imageObject.src = songImage;
+      imageObject.crossOrigin = "anonymous" 
+      imageObject.onload = () => {
+        const context = document.createElement("canvas").getContext("2d");
+        context.drawImage(imageObject, 0, 0, 1, 1);
+        const i = context.getImageData(0, 0, 1, 1).data;
+        const rgba = `rgba(${i[0]},${i[1]},${i[2]},${i[3]})`;
+        songImageBg.style.backgroundColor = rgba;
+        songImageBg.style.backgroundImage = 'none'
+      }
+    }
+
     const artists = getArtistsNames(playbackState.item);
     const itemName = playbackState.item.name;
     const showing = `${artists} - ${itemName}`
@@ -180,8 +292,8 @@
     }
     const ctime = msToTimestamp(playbackState.progress_ms);
     const ttime = msToTimestamp(playbackState.item.duration_ms);
-    document.querySelector(".pbt").innerText = ctime + " / " + ttime;
-    document.querySelector(".on-device").innerText = playbackState.device.name;
+    pbtDisplay.innerText = ctime + " / " + ttime;
+    deviceOn.innerText = playbackState.device.name;
 
     if (playbackState.shuffle_state === true) {
       makeAll("sp.shf", "green");
@@ -195,12 +307,33 @@
     const playbackPercent = (currentProgressMs / playbackState.item.duration_ms) * 100;
     pbt.style.setProperty('--thumb-width', `${playbackPercent}%`);
 
-
-    const isPaused = playbackState.is_playing ? "" : " (Paused)";
-
-    imgs = [];
-
   })
+
+  universal.on("spotify_data", async (data) => {
+    if(settings['show-queue'] != "true") {
+      if(queueContainer.children.length > 0) queueContainer.replaceChildren([])
+      return;
+    }
+    const {queue} = data;
+    if(!queue.queue) return;
+    const usedQueue = queue.queue.slice(0, 8)
+    let Xn = 0;
+    const e = document.createDocumentFragment();
+    for(const i of usedQueue) {
+      const item = document.createElement("div");
+      item.classList.add("up-next")
+      item.textContent = i.name;
+      let Xe = Xn;
+      item.onclick = () => {
+        universal.send("spotify_play", Xe);
+      }
+      Xn++;
+      e.appendChild(item);
+    }
+    queueContainer.replaceChildren(e);
+  })
+
+  let lastLyric = '';
 
   universal.on("spotify-current-lyric", (e) => {
     if (e == '') {
@@ -209,6 +342,16 @@
       lyricElement.style.display = 'block';
     }
     lyricElement.innerText = e;
+  })
+
+  universal.on("textbg-command", (c) => {
+    if(settings['lyric-pulse'] != "true") return;
+    if(c == 'pulse') {
+        lyricElement.style.animation = `tpulse .25s linear`;
+        setTimeout(() => {
+		    	lyricElement.style.animation = "";
+		    }, 25 * 100);
+    }
   })
 
   function makeAll(type, color) {
@@ -226,8 +369,6 @@
     const totalMilliseconds = Number.parseInt(milliseconds);
     return (totalMinutes * 60 * 1000) + (totalSeconds * 1000) + totalMilliseconds;
   }
-
-  let imgs = [];
 
   function msToTimestamp(ms) {
     const minutes = Math.floor(ms / 60000);

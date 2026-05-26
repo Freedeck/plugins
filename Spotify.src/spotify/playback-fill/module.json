@@ -1,0 +1,29 @@
+{
+  "name": "Now Playing Display",
+  "view": "view",
+  "settings": {
+    "background": {
+      "title": "Background Style",
+      "description": "Choose the widget's background style",
+      "type": "select",
+      "default": "blur",
+      "options": {
+        "blur": "Blurred Cover Art",
+        "aver": "Average Color"
+      }
+    },
+    "lyric-pulse": {
+      "title": "Lyric Pulse",
+      "description": "Pulse lyrics/repeat lyric as they play",
+      "type": "boolean",
+      "default": "true"
+    }
+    ,
+    "show-queue": {
+      "title": "Show Queue",
+      "description": "Shows the song queue on the right side of your Dash.",
+      "type": "boolean",
+      "default": "true"
+    }
+  }
+}

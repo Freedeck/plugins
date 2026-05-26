@@ -11,8 +11,8 @@ function forceLogin(data) {
 	if (isTryingToLogin) return;
 	const win = window.open(data, "_blank");
 	isTryingToLogin = true;
-	if(document.querySelector("#con_sp")) {
-		document.querySelector("#con_sp").innerText = 'Connect Spotify';
+	if (document.querySelector("#con_sp")) {
+		document.querySelector("#con_sp").innerText = "Connect Spotify";
 	}
 	if (win) {
 		const timer = setInterval(() => {
@@ -43,8 +43,8 @@ universal.on("spotify_data", (data) => {
 	const itemName = playbackState.item.name;
 	const showing = `${artists} - ${itemName}`;
 
-	if(document.querySelector("#con_sp")) {
-		document.querySelector("#con_sp").innerText = 'Connected!';
+	if (document.querySelector("#con_sp")) {
+		document.querySelector("#con_sp").innerText = "Connected!";
 	}
 
 	universal.ui.visual.typeChangeText("sp.clf", showing);
@@ -97,7 +97,21 @@ universal.on("spotify_data", (data) => {
 		if (imgElement.style.width !== "100%") imgElement.style.width = "100%";
 		if (imgElement.style.height !== "100%") imgElement.style.height = "100%";
 	}
+
+	if (tbgSp) {
+		if (!universal.plugins.textbg) {
+			tbgSp.textContent = "TextBG Info";
+			
+		} else {
+			tbgSp.style.display = "none";
+		}
+		tbgSp.onclick = () => {
+			UniversalUI.show.showYesNo("Title", "Content", ()=>{})
+		}
+	}
 });
+
+const tbgSp = document.querySelector("#tbg_sp");
 
 universal.on("spotify-current-lyric", (e) => {
 	universal.ui.visual.typeChangeText("sp.cll", `${e}`);

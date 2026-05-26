@@ -41,7 +41,7 @@ class Spotify extends Plugin {
 		this.add(HookRef.types.dashModule, "spotify");
 
 		this.setPopout(
-			`<a id='con_sp' onclick='window.open("/spotify", "Spotify Setup", "width=800,height=800"); return false;'>Connect Spotify</a>`
+			`<a id='con_sp' onclick='window.open("/spotify", "Spotify Setup", "width=800,height=800"); return false;'>Connect Spotify</a><button id="tbg_sp"></button>`
 		);
 
 		const cid = this.getFromSaveData("cid");
@@ -74,6 +74,10 @@ class Spotify extends Plugin {
 			socket.on("spotify_update", () => {
 				io.emit("spotify_data", dataPacket);
 			});
+			
+			socket.on("spotify_play", (data) => {
+				this.play(data)
+			})
 
 			let reallyRateLimited = false;
 
@@ -85,10 +89,14 @@ class Spotify extends Plugin {
 					}
 
 					let playbackState = {};
+					let queue = {};
 
 					if (!reallyRateLimited) {
 						playbackState = await authenticatedRequest(
 							"https://api.spotify.com/v1/me/player",
+						);
+						queue = await authenticatedRequest(
+							"https://api.spotify.com/v1/me/player/queue",
 						);
 					}
 					if (!reallyRateLimited && playbackState != undefined && playbackState.error == "stop") {
@@ -115,6 +123,7 @@ class Spotify extends Plugin {
 					this.doLyric(playbackState);
 
 					set("playbackState", { ...playbackState, authorizationUrl });
+					set("queue", queue);
 
 					if (previousState == playbackState) return;
 					this.io.emit("spotify_data", dataPacket);
@@ -152,7 +161,7 @@ class Spotify extends Plugin {
 			duration: durationMs / 1000,
 		}).toString();
 		this.isFetchingLyrics = true;
-		console.log("Fetching lyrics", url.toString());
+		this.log(`Searching for lyrics for ${name} on ${album}`);
 		fetch(url)
 			.then((res) => res.json())
 			.then((res) => {
@@ -177,12 +186,18 @@ class Spotify extends Plugin {
 					lyrics.type = "generic";
 					lyrics.values = res.plainLyrics || res || "";
 				}
-				console.log("GOT LYRICS!");
+				this.log(`Downloaded lyrics for ${artist} - ${name}`)
 			})
 			.catch((err) => {
 				this.isFetchingLyrics = false;
-				console.error("Error while grabbing lyrics", err);
+				this.log(`Error grabbing lyrics for ${artist} - ${name}:\n${err}`)
 			});
+	}
+
+	async play(data) {
+		for(let i = 0; i < data+1; i++) {
+			await authenticatedRequest("https://api.spotify.com/v1/me/player/next", "POST")
+		}
 	}
 
 	timestampToMs(timestamp) {

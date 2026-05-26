@@ -1,6 +1,6 @@
 {
   "name": "Currently Playing Song",
-  "view": "view",
+  "view": "overlay",
   "overlay": "overlay",
   "settings": {
     "background": {

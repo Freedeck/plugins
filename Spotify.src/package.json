@@ -1,6 +1,6 @@
 {
   "name": "spotify",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Control your Spotify from your Freedeck!",
   "main": "spotify.js",
   "scripts": {
