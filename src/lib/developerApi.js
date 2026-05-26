@@ -68,7 +68,7 @@ function makePackage(opt = {}) {
           console.log("The plugin does not have a given name (package.json -> freedeck['title']).");
           break;
         case 'no_package_type':
-          console.log("The plugin does not have a given name (package.json -> freedeck['package']).");
+          console.log("The plugin does not have a given type (package.json -> freedeck['package']).");
           break;
         case 'invalid_package_type':
           console.log("The plugin does not have a valid type (package -> freedeck['package'] is not of valid types ['plugin', 'theme']).");

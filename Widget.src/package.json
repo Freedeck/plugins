@@ -1,12 +1,17 @@
 {
-	"name": "exampleplugin",
+	"name": "widget",
 	"version": "1.0.0",
-	"description": "",
-	"main": "config.js",
+	"description": "Widgets on the Client page!",
+	"main": "FDWidgets.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"keywords": [],
 	"author": "FreedeckInternals",
+	"freedeck": {
+		"title": "Widgets Testing",
+		"package": "plugin",
+		"message": "This is a test for the very proof of concept Widget system, like Dash before Dash. This may not look great, but it's in the works."
+	},
 	"license": "ISC"
 }
