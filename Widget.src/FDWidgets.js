@@ -15,13 +15,7 @@ class FDWidgets extends Plugin {
 			renderType: "widget"
 		})
 
-		return true;
 	}
-
-	onButton(interaction) {
-		return true;
-	}
-
 }
 
 module.exports = {
