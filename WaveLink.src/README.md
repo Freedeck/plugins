@@ -1,5 +1,3 @@
-![abc](../assets/wavelink.svg)
-
 # WaveLink Plugin for Freedeck
 > This plugin requires you to be on v6.0.0-rc1 or higher.  
 > Look for it in the Marketplace!
