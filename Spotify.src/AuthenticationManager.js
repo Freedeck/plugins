@@ -138,7 +138,11 @@ async function authenticatedRequest(
 				}
 			}
 		} catch (err) {
-			console.error("Spotify API Server Error", err, request);
+			if(request.headers['content-type'] && request.headers['content-type'] != 'application/json') {
+				// Nothing
+			} else {
+				console.error("Spotify API Server Error", err, request);
+			}
 		}
 
 		if (request.status === 429 && retryCount > 0) {

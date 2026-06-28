@@ -1,5 +1,5 @@
 const eventNames = require("@handlers/eventNames");
-const { Plugin, events, types, intents, HookRef } = require("@freedeck/api");
+const { Plugin, events, types, intents, HookRef, SettingBuilder } = require("@freedeck/api");
 const {
 	authorizationUrl,
 	authenticatedRequest,
@@ -12,8 +12,6 @@ const staticTypes = require("./StaticTypes.json");
 
 const { dataPacket, get, set, remove } = require("./DataPacketManager");
 set("playbackState", { authorizationUrl });
-
-let shouldRegisterPlaylistsType = true;
 
 let lyrics = {
 	type: "none",
@@ -41,10 +39,23 @@ class Spotify extends Plugin {
 		this.add(HookRef.types.dashModule, "spotify");
 
 		this.setPopout(
-			`<a id='con_sp' onclick='window.open("/spotify", "Spotify Setup", "width=800,height=800"); return false;'>Connect Spotify</a><button id="tbg_sp"></button>`
+			`<a id='con_sp' onclick='window.open("/spotify", "Spotify Setup", "width=800,height=800"); return false;'>Connect Spotify</a>`
 		);
 
-		const cid = this.getFromSaveData("cid");
+    this.useSetting(new SettingBuilder()
+    .setId("cid")
+    .setName("Client ID")
+    .setDefaultValue("null")
+    .setDescription("This is your Spotify Application's Client ID."))
+
+		this.useSetting(new SettingBuilder()
+		.setId("toast")
+		.setName("Send Notifications")
+		.setDefaultValue("true")
+		.setAllowedValues(['true', 'false'])
+		.setDescription("Show a notification everytime a song begins"))
+
+		const cid = this.getSetting("cid")
 		if(cid != undefined || cid != null) setClientId(cid);
 
 		set("playbackState", {})
@@ -60,7 +71,7 @@ class Spotify extends Plugin {
 		}
 
 		this.on(events.connection, ({ socket, io }) => {
-			this.io = io;
+			if(!this.io) {this.io = io;}
 
 			socket.on("spotify_pcc", () => {
 				socket.emit("spotify_pcc", true);
@@ -68,7 +79,7 @@ class Spotify extends Plugin {
 
 			socket.on("sp_cset", (data) => {
 				setClientId(data);
-				this.setToSaveData("cid", data);
+				this.setSetting("cid", data);
 			})
 
 			socket.on("spotify_update", () => {
@@ -77,58 +88,52 @@ class Spotify extends Plugin {
 			
 			socket.on("spotify_play", (data) => {
 				this.play(data)
-			})
-
-			let reallyRateLimited = false;
-
-			if (!this._loop)
-				this._loop = setInterval(async () => {
-
-					if(getClientId() == "none") {
-						return;
-					}
-
-					let playbackState = {};
-					let queue = {};
-
-					if (!reallyRateLimited) {
-						playbackState = await authenticatedRequest(
-							"https://api.spotify.com/v1/me/player",
-						);
-						queue = await authenticatedRequest(
-							"https://api.spotify.com/v1/me/player/queue",
-						);
-					}
-					if (!reallyRateLimited && playbackState != undefined && playbackState.error == "stop") {
-						reallyRateLimited = true;
-						console.log("Really rate limited, stopping requests.");
-					}
-
-					const previousState = get("playbackState", {});
-					if (previousState.item?.id !== playbackState?.item?.id) {
-						this.io.emit("spotify_new_song");
-						this.notifyOfSong(playbackState);
-					}
-
-					if (
-						previousState.playbackState?.is_playing != playbackState.is_playing
-					) {
-						this.io.emit(
-							eventNames.companion.set_tile_icon,
-							"sp.playpause",
-							playbackState.is_playing ? "play.png" : "pause.png",
-						);
-					}
-
-					this.doLyric(playbackState);
-
-					set("playbackState", { ...playbackState, authorizationUrl });
-					set("queue", queue);
-
-					if (previousState == playbackState) return;
-					this.io.emit("spotify_data", dataPacket);
-				}, 500);
+			})				
 		});
+		
+		let reallyRateLimited = false;
+
+		this._loop = setInterval(async () => {
+			if(!this.io) return;
+			if(getClientId() == "none") {
+				return;
+			}
+			let playbackState = {};
+			let queue = {};
+			if (!reallyRateLimited) {
+				playbackState = await authenticatedRequest(
+					"https://api.spotify.com/v1/me/player",
+				);
+				queue = await authenticatedRequest(
+					"https://api.spotify.com/v1/me/player/queue",
+				);
+			}
+			if (!reallyRateLimited && playbackState != undefined && playbackState.error == "stop") {
+				reallyRateLimited = true;
+				console.log("Really rate limited, stopping requests.");
+			}
+			const previousState = get("playbackState", {});
+			if (previousState.item?.id !== playbackState?.item?.id) {
+				this.io.emit("spotify_new_song");
+				this.notifyOfSong(playbackState);
+			}
+			if (
+				previousState.playbackState?.is_playing != playbackState.is_playing
+			) {
+				this.io.emit(
+					eventNames.companion.set_tile_icon,
+					"sp.playpause",
+					playbackState.is_playing ? "play.png" : "pause.png",
+				);
+			}
+			this.doLyric(playbackState);
+			set("authorizationUrl", authorizationUrl)
+			set("playbackState", { ...playbackState });
+			set("queue", queue);
+			if (previousState == playbackState) return;
+			this.io.emit("spotify_data", dataPacket);
+		}, 500);
+
 		return true;
 	}
 	getLyricAt(timestampMs) {
@@ -255,14 +260,16 @@ class Spotify extends Plugin {
 	}
 
 	notifyOfSong(playbackState) {
-		this.pushNotification(
-			`Now playing ${playbackState.item?.name} by ${this.getArtistsNames(
-				playbackState.item,
-			)}`,
-			{
-				image: playbackState.item?.album?.images[0].url,
-			},
-		);
+		if(this.getSetting("toast") != "false") {
+			this.pushNotification(
+				`Now playing ${playbackState.item?.name} by ${this.getArtistsNames(
+					playbackState.item,
+				)}`,
+				{
+					image: playbackState.item?.album?.images[0].url,
+				},
+			);
+		}
 	}
 
 	getArtistsNames(playbackItem) {

@@ -1,8 +1,8 @@
 {
-  "name": "obscontrol",
-  "version": "2.1.0",
-  "description": "Control your OBS Studio setup right from your Freedeck.",
-  "main": "OBSControl.js",
+  "name": "wavelink3",
+  "version": "1.0.0",
+  "description": "Control your WaveLink 3 devices from your Freedeck!",
+  "main": "WL.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,10 +10,10 @@
   "author": "Freedeck",
   "license": "ISC",
   "dependencies": {
-    "obs-websocket-js": "^5.0.6"
+    "@darrellvs/node-wave-link-sdk": "^2.0.4"
   },
   "freedeck": {
-    "title": "OBS Control",
+    "title": "WaveLink 3.0.0",
     "package": "plugin"
   }
 }

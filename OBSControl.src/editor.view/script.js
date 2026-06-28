@@ -103,8 +103,22 @@ document.querySelector("#obsws-auth-button").onclick = (ev) => {
     document.querySelector("#obsws-dash").style.display = "block";
     return;
   }
-  universal.send(universal.events.keypress, { event: ev, btn: { uuid: 0, name: "Emulated Button from OBSControl", type: "obs.cf", data: {
-    password: document.querySelector("#obspswd").value,
-  } } });
+
+  universal.send(universal.events.companion.fdsp_set, {
+    plugin: 'obscontrol',
+    setting: {
+      id: 'password'
+    },
+    userValue: document.querySelector("#obspswd").value
+  })
+  universal.send(universal.events.companion.fdsp_set, {
+    plugin: 'obscontrol',
+    setting: {
+      id: 'host'
+    },
+    userValue: document.querySelector("#obsserver").value
+  })
+  universal.send(universal.events.keypress, { event: ev, btn: { uuid: 0, name: "Emulated Button from OBSControl", type: "obs.cf"} });
+
 }
 

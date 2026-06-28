@@ -19,12 +19,13 @@ newPackage("Widget").setRepository("dev").build();
 /** Main Repository */
 newPackage("Spotify").isFavorite().build();
 newPackage("OBSControl").isFavorite().addExtra(Operations.INSTALL_DEPS_PRE_PACKAGE).build();
-newPackage("WaveLink").isFavorite().addExtra(Operations.INSTALL_DEPS_PRE_PACKAGE).build();
+newPackage("WaveLink3").isFavorite().addExtra(Operations.INSTALL_DEPS_PRE_PACKAGE).build();
 newPackage("myinstants").isFavorite().addExtra(Operations.INSTALL_DEPS_PRE_PACKAGE).build();
 newPackage("Clock").isFavorite().build();
 newPackage("YTMD").isFavorite().build();
 newPackage("TextBG").isFavorite().build();
 newPackage("HAFreedeck").build();
+newPackage("WaveLink").addExtra(Operations.INSTALL_DEPS_PRE_PACKAGE).build();
 newPackage("Twitch").build();
 newPackage("Kick").build();
 newPackage("EasyMidi").addExtra(Operations.INSTALL_DEPS_PRE_PACKAGE).build();

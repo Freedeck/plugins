@@ -35,11 +35,17 @@
   },
   {
     "type": "sp.playpause",
-    "display": "Play/Pause"
+    "display": "Play/Pause",
+    "templateData": {
+      "primaryIcon": true
+    }
   },
   {
     "type": "sp.next",
-    "display": "Next"
+    "display": "Next",
+    "templateData": {
+      "primaryIcon": true
+    }
   },
   {
     "type": "sp.prev",

@@ -1,7 +1,7 @@
 {
   "name": "wavelink",
   "version": "2.3.0",
-  "description": "Locally mute any source from your Elgato Wave Link device. More features coming soon.",
+  "description": "Control your WaveLink 1/2 devices from your Freedeck!",
   "main": "WL.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -13,7 +13,7 @@
     "@darrellvs/node-wave-link-sdk": "^1.0.14"
   },
   "freedeck": {
-    "title": "WaveLink",
+    "title": "WaveLink 2",
     "package": "plugin"
   }
 }

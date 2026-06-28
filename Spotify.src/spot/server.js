@@ -8,6 +8,7 @@ universal.on("spotify_force_relogin", (data) => {
 });
 
 function forceLogin(data) {
+	if (universal.name != "Companion") return;
 	if (isTryingToLogin) return;
 	const win = window.open(data, "_blank");
 	isTryingToLogin = true;
@@ -27,13 +28,11 @@ function forceLogin(data) {
 universal.on("spotify_data", (data) => {
 	const { playbackState } = data;
 	if (
-		(playbackState.error?.status === 400 ||
-			playbackState.error?.status === 401 ||
-			playbackState === "FIRST_TIME") &&
+		(playbackState.error?.status >= 400 || playbackState === "FIRST_TIME") &&
 		!isAuthorized
 	) {
 		isAuthorized = true;
-		forceLogin(playbackState.authorizationUrl);
+		forceLogin(data.authorizationUrl);
 	} else {
 		isAuthorized = true;
 	}
@@ -49,14 +48,6 @@ universal.on("spotify_data", (data) => {
 
 	universal.ui.visual.typeChangeText("sp.clf", showing);
 	universal.ui.visual.typeChangeText("sp.clt", `${playbackState.item.name}`);
-
-	if (playbackState.is_playing === false) {
-		makeAll("sp.cl", "yellow");
-		makeAll("sp.playpause", "yellow");
-	} else {
-		makeAll("sp.cl", "none");
-		makeAll("sp.playpause", "green");
-	}
 
 	if (playbackState.shuffle_state === true) {
 		makeAll("sp.shf", "green");
@@ -101,13 +92,12 @@ universal.on("spotify_data", (data) => {
 	if (tbgSp) {
 		if (!universal.plugins.textbg) {
 			tbgSp.textContent = "TextBG Info";
-			
 		} else {
 			tbgSp.style.display = "none";
 		}
 		tbgSp.onclick = () => {
-			UniversalUI.show.showYesNo("Title", "Content", ()=>{})
-		}
+			UniversalUI.show.showYesNo("Title", "Content", () => {});
+		};
 	}
 });
 

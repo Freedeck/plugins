@@ -83,7 +83,7 @@
     document.querySelector("#cbu").value = "http://127.0.0.1:5754/spotify/callback"
 
     universal.on("spotify_data", (e) => {
-      if(e.playbackState) {
+      if(Object.keys(e.playbackState).length > 0) {
         window.close();
       }
     })

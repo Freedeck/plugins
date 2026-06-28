@@ -1,4 +1,4 @@
-const {Plugin, HookRef, types, events, intents} = require("@freedeck/api");
+const {Plugin, HookRef, types, events, intents, SettingBuilder} = require("@freedeck/api");
 const { default: OBSWebSocket } = require('obs-websocket-js');
 
 const obs = new OBSWebSocket();
@@ -130,18 +130,22 @@ class OBSControl extends Plugin {
         this.add(HookRef.types.server, 'oc/server.js');
         this.add(HookRef.types.client, 'oc/server.js');
 
-        let pswd = this.getFromSaveData('password');
-        if (!pswd) {
-            this.setToSaveData('password', 'password');
-        }
+        this.useSetting(new SettingBuilder()
+            .setId("password")
+            .setName("OBS Password")
+            .setDefaultValue("password")
+            .setDescription("The password to your OBS WebSocket server."))
+
+        this.useSetting(new SettingBuilder()
+            .setId("host")
+            .setName("OBS Host")
+            .setDefaultValue("localhost:4455")
+            .setDescription("The IP and port of your OBS WebSocket server."))
 
         this.register({
             display: "Reconnect to OBS",
             type: "obs.cf",
-            hidden: true,
-            templateData: {
-                password: "change-me"
-            }
+            hidden: true
         })
         try {
             this.tryConnecting();
@@ -166,8 +170,9 @@ class OBSControl extends Plugin {
 
     _packetUpdateLoop;
     tryConnecting() {
-        let pswd = this.getFromSaveData('password');
-        obs.connect('ws://localhost:4455', pswd).then((info) => {
+        let pswd = this.getSetting('password');
+        let host = this.getSetting("host")
+        obs.connect('ws://' + host, pswd).then((info) => {
             this.currentDataPacket = {};
             console.log('[OBSControl] Connected and identified. OBS WS: v' + info.obsWebSocketVersion)
 
@@ -176,10 +181,7 @@ class OBSControl extends Plugin {
             this.register({
                 display: "Reconnect to OBS",
                 type: "obs.cf",
-                hidden: true,
-                templateData: {
-                    password: "change-me"
-                }
+                hidden: true
             })
 
             this.register({
@@ -443,7 +445,6 @@ class OBSControl extends Plugin {
 
     onButton(interaction) {
         if(interaction.type == 'obs.cf') {
-            this.setToSaveData('password', interaction.data.password);
             this.tryConnecting();
         }
         if (interaction.type.startsWith('obs.ss.')) {

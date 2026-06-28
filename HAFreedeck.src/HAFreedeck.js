@@ -1,4 +1,4 @@
-const { Plugin, HookRef, types, events, intents } = require("@freedeck/api");
+const { Plugin, HookRef, types, events, intents, SettingBuilder } = require("@freedeck/api");
 const { init } = require("./userHelper");
 const eventNames = require("@handlers/eventNames");
 
@@ -27,30 +27,32 @@ class HAF extends Plugin {
 		this.requestIntent(intents.IO);
 		this.requestIntent(intents.SOCKET);
 
-		let token = this.getFromSaveData("token") || "";
-		if (token == undefined || token == "") {
-			console.log("No token found, please enter your token in the settings.");
-			this.setToSaveData("token", "");
-		}
+    this.useSetting(new SettingBuilder()
+    .setId("token")
+    .setName("Long-Lived Access Token")
+    .setDefaultValue("Change me!")
+    .setDescription("This is your Home Assistant token."))
 
-		let url = this.getFromSaveData("url") || "http://localhost:8123/";
-		if (url == undefined) {
-			console.log(
-				"No URL found, please enter your Home Assistant URL in the settings.",
-			);
-			this.setToSaveData("url", "http://localhost:8123/");
-		}
+    this.useSetting(new SettingBuilder()
+    .setId("url")
+    .setName("Home Assistant Instance URL")
+    .setDefaultValue("http://localhost:8123/")
+    .setDescription("This is your HA instance URL."))
+    this.useSetting(new SettingBuilder()
+    .setId("states")
+    .setName("States To Track")
+    .setDefaultValue(["change.my.room.temperature"])
+    .setDescription("These are what states HAF will track."))
 
-		let statesToTrack = this.getFromSaveData("statesToTrack") || ["change.my.room.temperature"];
-		if (
-			statesToTrack == undefined ||
-			statesToTrack == ["change.my.room.temperature"]
-		) {
-			console.log(
-				"No states to track found, please enter the states you want to track in the settings.",
-			);
-			this.setToSaveData("statesToTrack", ["change.my.room.temperature"]);
-		}
+    this.useSetting(new SettingBuilder()
+    .setId("updi")
+    .setName("Update Interval")
+    .setDefaultValue(1000)
+    .setDescription("This is how often to poll HA."))
+
+		let token = this.getSetting("token")
+		let url = this.getSetting("url")
+		let statesToTrack = this.getSetting("states")
 
 		this.register({
 			display: "Force Update",
@@ -72,12 +74,37 @@ class HAF extends Plugin {
 			() => {
 				this.stateLoop(token, url, statesToTrack, true);
 			},
-			this.getFromSaveData("updateInterval") || 1000,
+			this.getSetting("updi") || 1000,
 		);
 
+		let hasReceivedServer = false;
+
 		this.on(events.connection, ({ socket, io }) => {
+			if(!hasReceivedServer) {
+				hasReceivedServer = true;
+				io.on("haf.forceupdate", () => {
+					for (const state in stateCache) {
+						const data = stateCache[state];
+						if (!data) {
+							this.io.emit("haf.statechange", {
+								wanted: state,
+								state: "Failed to query state.",
+							});
+						}
+						this.io.emit("haf.statechange", {
+							wanted: data.entity_id,
+							state:
+								data.attributes.friendly_name +
+								": " +
+								data.state +
+								data.attributes.unit_of_measurement,
+						});
+					}
+				});
+			}
+
 			socket.on("haf.setup_status", () => {
-				socket.emit("haf.setup_status", this.getFromSaveData("token") != "");
+				socket.emit("haf.setup_status", this.getSetting("token") != "null");
 			});
 			socket.on("haf.set_settings", (data) => {
 				if (!data.token || !data.url || !data.statesToTrack) {
@@ -87,15 +114,17 @@ class HAF extends Plugin {
 					);
 					return;
 				}
-				this.setToSaveData("statesToTrack", data.statesToTrack);
-				this.setToSaveData("url", "http://" + data.url);
-				this.setToSaveData("token", data.token);
+				this.setSetting("states", data.statesToTrack);
+				this.setSetting("url", "http://" + data.url);
+				this.setSetting("token", data.token);
+				
 				statesToTrack.forEach((state) => {
 					this.deregisterType(state);
 				});
 				statesToTrack = data.statesToTrack;
 				token = data.token;
 				url = "http://"+data.url;
+
 				data.statesToTrack.forEach((state) => {
 					this.register({
 						display: state,
@@ -112,25 +141,6 @@ class HAF extends Plugin {
 				);
 				io.emit(eventNames.default.reload);
 			});
-			io.on("haf.forceupdate", () => {
-				for (const state in stateCache) {
-					const data = stateCache[state];
-					if (!data) {
-						this.io.emit("haf.statechange", {
-							wanted: state,
-							state: "Failed to query state.",
-						});
-					}
-					this.io.emit("haf.statechange", {
-						wanted: data.entity_id,
-						state:
-							data.attributes.friendly_name +
-							": " +
-							data.state +
-							data.attributes.unit_of_measurement,
-					});
-				}
-			});
 		});
 
 		return true;
@@ -139,9 +149,9 @@ class HAF extends Plugin {
 	onButton(interaction) {
 		if (interaction.type == "haf.forceupdate") {
 			this.stateLoop(
-				this.getFromSaveData("token"),
-				this.getFromSaveData("url"),
-				this.getFromSaveData("statesToTrack"),
+				this.getSetting("token"),
+				this.getSetting("url"),
+				this.getSetting("states"),
 				true,
 			);
 			if (this.io != null) {
