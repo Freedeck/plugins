@@ -1,0 +1,17 @@
+{
+  "name": "fdps_test",
+  "version": "1.0.0",
+  "description": "Testing the Freedeck Plugin Settings (FDPS)",
+  "main": "fdps.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Freedeck",
+  "license": "ISC",
+  "type": "commonjs",
+  "freedeck": {
+    "title": "FDPS Test",
+    "package": "plugin"
+  }
+}

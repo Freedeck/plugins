@@ -10,6 +10,7 @@ const favorites = {};
 /** Developer Repository */
 newPackage("fdinternals").isFavorite().setRepository("dev").build();
 newPackage("testpluginv2").setRepository("dev").build();
+newPackage("fdps_test").setRepository("dev").build();
 newPackage("MyExampleTheme").setRepository("dev").build();
 newPackage("dynamic-icons").setRepository("dev").build();
 newPackage("ExamplePlugin").setRepository("dev").build();
