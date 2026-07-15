@@ -143,6 +143,12 @@ class WaveLink extends Plugin {
         id: channel.id, 
         isMuted: !channel.isMuted 
       });
+
+      this.io.emit("wl.stat", JSON.stringify({
+        input: buttonId.type.split(".").pop().trim(),
+        value: !channel.isMuted,
+        type: buttonId.type.split(".")[1]
+      }))
     } 
     
     // 2. Stream Mute Toggle
@@ -154,6 +160,12 @@ class WaveLink extends Plugin {
         id: channel.id,
         mixes: [{ id: streamMix.id, isMuted: !currentStreamMute }]
       });
+
+      this.io.emit("wl.stat", JSON.stringify({
+        input: buttonId.type.split(".").pop().trim(),
+        value: !currentStreamMute,
+        type: buttonId.type.split(".")[1]
+      }))
     } 
     
     // 3. Monitor Volume Slider (Incoming 0-100 translated to 0-1)
@@ -163,6 +175,12 @@ class WaveLink extends Plugin {
         id: channel.id, 
         level: targetVolume 
       });
+
+      this.io.emit("wl.vol", JSON.stringify({
+        input: buttonId.type.split(".").pop().trim(),
+        value: buttonId.data.value,
+        type: buttonId.type.split(".")[1]
+      }))
     } 
     
     // 4. Stream Volume Slider (Incoming 0-100 translated to 0-1)
@@ -174,6 +192,14 @@ class WaveLink extends Plugin {
         id: channel.id,
         mixes: [{ id: streamMix.id, level: targetVolume }]
       });
+
+      this.io.emit("wl.vol", JSON.stringify(
+        {
+        input: channelName,
+        value: buttonId.data.value,
+        type: buttonId.type.split(".")[1].split(".")[0]
+      }
+      ))
     }
   }
 }

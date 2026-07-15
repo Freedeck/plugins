@@ -1,6 +1,6 @@
 {
   "name": "wavelink3",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "description": "Control your WaveLink 3 devices from your Freedeck!",
   "main": "WL.js",
   "scripts": {
@@ -13,7 +13,7 @@
     "@darrellvs/node-wave-link-sdk": "^2.0.4"
   },
   "freedeck": {
-    "title": "WaveLink 3.0.0",
+    "title": "WaveLink for v3",
     "package": "plugin"
   }
 }

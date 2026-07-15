@@ -7,10 +7,12 @@ universal.on('wl.stat', (data) => {
     // Standardized to match the exact 'm' and 'sm' strings emitted by the server
     if ((inter.type == 'wl.m.' + data.input && data.type == 'm') ||
         (inter.type == 'wl.sm.' + data.input && data.type == 'sm')) {
-      if (data.value == true) {
-        setIndicatorToButton(btn, 'red');
-      } else {
-        setIndicatorToButton(btn, 'green');
+      if(!inter.data.noIndicators) {
+        if (data.value == true) {
+          setIndicatorToButton(btn, 'red');
+        } else {
+          setIndicatorToButton(btn, 'green');
+        }
       }
     }
   })
