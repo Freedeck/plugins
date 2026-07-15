@@ -67,8 +67,16 @@ const getToken = async (code, refresh = false) => {
 
 	const body = await fetch("https://accounts.spotify.com/api/token", payload);
 	const response = await body.json();
-	authorizationObject.grabbed = Date.now() / 1000;
-	authorizationObject = response;
+	authorizationObject = {
+		...authorizationObject, 
+		access_token: response.access_token,
+		expires_in: response.expires_in,
+		scope: response.scope,
+		grabbed: Date.now() / 1000
+	};
+	if (response.refresh_token) {
+		authorizationObject.refresh_token = response.refresh_token;
+	}
 	pluginInstance.setToSaveData("ao", authorizationObject);
 };
 const rateLimitMap = new Map();
@@ -119,7 +127,7 @@ async function authenticatedRequest(
 				console.log("Error while fetching Spotify playbackState:", data);
 				if (pluginInstance) {
 					if (data.error.message.includes("expired")) {
-						getToken(null, true);
+						await getToken(null, true);
 						return data;
 					}
 					if (data.error.message.includes("Refresh token revoked")) {
