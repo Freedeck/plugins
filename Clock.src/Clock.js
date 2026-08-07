@@ -12,7 +12,7 @@ class Clock extends Plugin {
 
         this.register({
             display: 'Time (24h, seconds)',
-            type: 'clock.time'
+            type: 'clock.time.24'
         })
 
         this.register({
