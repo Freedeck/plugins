@@ -15,7 +15,6 @@ newPackage("MyExampleTheme").setRepository("dev").build();
 newPackage("dynamic-icons").setRepository("dev").build();
 newPackage("ExamplePlugin").setRepository("dev").build();
 newPackage("DemoShowcase").setRepository("dev").build();
-newPackage("Widget").setRepository("dev").build();
 
 /** Main Repository */
 newPackage("Spotify").isFavorite().build();
