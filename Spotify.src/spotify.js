@@ -52,9 +52,16 @@ class Spotify extends Plugin {
 		.setId("toast")
 		.setName("Send Notifications")
 		.setDefaultValue("true")
-		.setAllowedValues(['true', 'false'])
+		.setAllowedValues('true', 'false')
 		.setDescription("Show a notification everytime a song begins"))
 
+		this.useSetting(new SettingBuilder()
+		.setId("lyrics")
+		.setName("Show Lyrics")
+		.setDefaultValue("true")
+		.setAllowedValues('true', 'false')
+		.setDescription("This uses TextBG (available on Marketplace) to display real-time lyrics at the top of Freedeck."))
+		
 		const cid = this.getSetting("cid")
 		if(cid != undefined || cid != null) setClientId(cid);
 
@@ -69,6 +76,12 @@ class Spotify extends Plugin {
 			}
 			this.register(type);
 		}
+
+		this.on(events.settingsChanged, (d) => {
+			if(d.setting.id == "cid") {
+				setClientId(d.userValue)
+			}
+		})
 
 		this.on(events.connection, ({ socket, io }) => {
 			if(!this.io) {this.io = io;}
@@ -216,7 +229,9 @@ class Spotify extends Plugin {
 
 	doLyric(playbackState) {
 		if (Object.keys(playbackState).length == 0) {
-			this.io.emit("textbg-display", "");
+			if (this.getSetting('lyric') == 'true') {
+				this.io.emit("textbg-display", "");
+			}
 			this.io.emit("spotify-current-lyric", "");
 			return;
 		}
@@ -234,7 +249,7 @@ class Spotify extends Plugin {
 				this.io.emit("textbg-command", "pulse");
 			}
 			const tbgTitle = `${lastLyric.lyric}`;
-			this.io.emit("textbg-display", tbgTitle);
+			if(this.getSetting('lyric') == 'true') this.io.emit("textbg-display", tbgTitle);
 			this.io.emit("spotify-current-lyric", tbgTitle);
 		}
 
@@ -246,8 +261,8 @@ class Spotify extends Plugin {
 				playbackState.item.duration_ms,
 			);
 		} else {
-			if (lyrics.current.name !== itemName) {
-				this.io.emit("textbg-display", "");
+			if (lyrics.current.name !== itemName && this.getSetting('lyric') == 'true') {
+				if(this.getSetting('lyric') == 'true') this.io.emit("textbg-display", "");
 				this.io.emit("spotify-current-lyric", "");
 				this.getLyricsFor(
 					itemName,

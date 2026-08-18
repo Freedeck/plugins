@@ -7,6 +7,12 @@
   <title>Spotify Setup</title>
   <link rel="stylesheet" href="/style/style.css">
   <style>
+    html {
+      scrollbar-width: none;
+    }
+    body {
+      background: var(--modal-bg);
+    }
     #keys {
       display: none;
     }
@@ -83,7 +89,7 @@
     document.querySelector("#cbu").value = "http://127.0.0.1:5754/spotify/callback"
 
     universal.on("spotify_data", (e) => {
-      if(Object.keys(e.playbackState).length > 0) {
+      if(universal.plugins.spotify.Settings.cid.value != "null" && Object.keys(e.playbackState).length > 0) {
         window.close();
       }
     })

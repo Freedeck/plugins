@@ -10,7 +10,12 @@ universal.on("spotify_force_relogin", (data) => {
 function forceLogin(data) {
 	if (universal.name != "Companion") return;
 	if (isTryingToLogin) return;
-	const win = window.open(data, "_blank");
+	let urlToOpen = data;
+	if (universal.plugins.spotify.Settings.cid.value == "null") {
+		urlToOpen = '/spotify'
+	}
+
+	const win = window.open(urlToOpen, "_blank");
 	isTryingToLogin = true;
 	if (document.querySelector("#con_sp")) {
 		document.querySelector("#con_sp").innerText = "Connect Spotify";

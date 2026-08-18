@@ -130,7 +130,7 @@ async function authenticatedRequest(
 						await getToken(null, true);
 						return data;
 					}
-					if (data.error.message.includes("Refresh token revoked")) {
+					if (data.error.message.includes("grant")) {
 						pluginInstance.io.emit(
 							"spotify_force_relogin",
 							authorizationUrl.toString(),
