@@ -1,7 +1,7 @@
 {
   "name": "discord",
   "version": "1.0.0",
-  "description": "Locally mute any source from your Elgato Wave Link device. More features coming soon.",
+  "description": "Control your Discord from Freedeck!",
   "main": "WL.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
