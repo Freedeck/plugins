@@ -29,7 +29,7 @@ newPackage("HAFreedeck").build();
 newPackage("WaveLink").addExtra(Operations.INSTALL_DEPS_PRE_PACKAGE).build();
 newPackage("Twitch").build();
 newPackage("Kick").build();
-newPackage("Discord").build();
+newPackage("discord").build();
 newPackage("EasyMidi").addExtra(Operations.INSTALL_DEPS_PRE_PACKAGE).build();
 newPackage("StreamChatMonitor").addExtra(Operations.INSTALL_DEPS_PRE_PACKAGE).build();
 
