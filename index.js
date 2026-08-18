@@ -15,6 +15,7 @@ newPackage("MyExampleTheme").setRepository("dev").build();
 newPackage("dynamic-icons").setRepository("dev").build();
 newPackage("ExamplePlugin").setRepository("dev").build();
 newPackage("DemoShowcase").setRepository("dev").build();
+newPackage("ArtScreenshotter").setRepository("dev").build();
 
 /** Main Repository */
 newPackage("Spotify").isFavorite().build();
@@ -28,6 +29,7 @@ newPackage("HAFreedeck").build();
 newPackage("WaveLink").addExtra(Operations.INSTALL_DEPS_PRE_PACKAGE).build();
 newPackage("Twitch").build();
 newPackage("Kick").build();
+newPackage("Discord").build();
 newPackage("EasyMidi").addExtra(Operations.INSTALL_DEPS_PRE_PACKAGE).build();
 newPackage("StreamChatMonitor").addExtra(Operations.INSTALL_DEPS_PRE_PACKAGE).build();
 
