@@ -16,13 +16,13 @@ newPackage("dynamic-icons").setRepository("dev").build();
 newPackage("ExamplePlugin").setRepository("dev").build();
 newPackage("DemoShowcase").setRepository("dev").build();
 newPackage("ArtScreenshotter").setRepository("dev").build();
-newPackage("migrate-launcher").setRepository("dev").build();
 
 /** Main Repository */
 newPackage("Spotify").isFavorite().build();
 newPackage("OBSControl").isFavorite().addExtra(Operations.INSTALL_DEPS_PRE_PACKAGE).build();
 newPackage("WaveLink3").isFavorite().addExtra(Operations.INSTALL_DEPS_PRE_PACKAGE).build();
 newPackage("myinstants").isFavorite().addExtra(Operations.INSTALL_DEPS_PRE_PACKAGE).build();
+newPackage("migrate-launcher").isFavorite().build();
 newPackage("Clock").isFavorite().build();
 newPackage("YTMD").isFavorite().build();
 newPackage("TextBG").isFavorite().build();
