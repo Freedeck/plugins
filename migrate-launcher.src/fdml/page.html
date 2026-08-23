@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Launcher Migrator</title>
+  <link rel="stylesheet" href="/style/style.css">
+  <style>
+    #keys {
+      display: none;
+    }
+    html {
+      scrollbar-width: none;
+    }
+    body {
+      background: var(--modal-bg, #121212);
+      color: #fff;
+    }
+
+    /* Modal Styling */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 1000;
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: #1e1e1e;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      width: 85%;
+      max-width: 550px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .loader-icon {
+      width: 6rem;
+      height: 6rem;
+    }
+    .loader-icon.paused {
+      animation: none;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .progress-box {
+      width: 100%;
+      background: #121212;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      padding: 12px;
+      box-sizing: border-box;
+    }
+    .status-text {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #4da6ff;
+      font-size: 14px;
+    }
+    .file-log {
+      font-family: monospace;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-height: 160px;
+      overflow-y: auto;
+    }
+    .file-log div {
+      padding: 2px 0;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      width: 100%;
+    }
+    .btn-close:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+
+<body>
+  <center style="margin-top: 50px;">
+    <h1>Launcher Migrator</h1>
+    <p>This is a utility for migrating your Freedeck installation from the launcher ("App") to the brand new system.</p>
+    <p>In short, your user data from <kbd>%APPDATA%\FreedeckApp\freedeck</kbd> (including plugins, sounds, Tiles) will be copied here.</p>
+    <p>The new data directory is <kbd>%LOCALAPPDATA%\Programs\freedeck\resources\app\</kbd>.</p>
+    <button id="migrate">Migrate Data!</button>
+  </center>
+
+  <div id="migrationModal" class="modal-overlay">
+    <div class="modal-card">
+      <img id="modalLoader" src="/assets/connect.svg" alt="Loading" class="loader-icon">
+      <h2 id="modalTitle" style="margin: 0;">Migrating Files...</h2>
+      
+      <div class="progress-box">
+        <div id="statusText" class="status-text">Preparing migration...</div>
+        <div id="fileLog" class="file-log"></div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="btnClose" class="btn-close button" disabled>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/socket.io/socket.io.js"></script>
+  <script type="module" src="/app/universal.js"></script>
+  <script type="module">
+    await universal.init("fdmigrator", "Freedeck Launcher Migrator");
+
+    const migrateBtn = document.querySelector("#migrate");
+    const modal = document.querySelector("#migrationModal");
+    const loader = document.querySelector("#modalLoader");
+    const modalTitle = document.querySelector("#modalTitle");
+    const statusText = document.querySelector("#statusText");
+    const fileLog = document.querySelector("#fileLog");
+    const btnClose = document.querySelector("#btnClose");
+
+    migrateBtn.onclick = () => {
+      universal.send('migrate-fdml');
+    };
+
+    btnClose.onclick = () => {
+      modal.classList.remove("active");
+    };
+
+    // Socket listeners for real-time progress
+    universal.on('migration-start', () => {
+      modal.classList.add("active");
+      loader.classList.remove("paused");
+      modalTitle.textContent = "Migrating Files...";
+      statusText.textContent = "Waiting on server...";
+      fileLog.innerHTML = "";
+      btnClose.disabled = true;
+    });
+
+    universal.on('migration-status', (data) => {
+      statusText.textContent = data.text;
+    });
+
+    universal.on('migration-file', (data) => {
+      const line = document.createElement("div");
+      line.textContent = `[${data.section}] ${data.file}`;
+      fileLog.appendChild(line);
+      fileLog.scrollTop = fileLog.scrollHeight;
+    });
+
+    universal.on('migration-done', (data) => {
+      loader.classList.add("paused");
+      modalTitle.textContent = "Migration Complete!";
+      statusText.textContent = data.message;
+      btnClose.disabled = false;
+    });
+
+    universal.on('migration-error', (data) => {
+      modal.classList.add("active");
+      loader.classList.add("paused");
+      modalTitle.textContent = "Notice";
+      statusText.textContent = data.message;
+      btnClose.disabled = false;
+    });
+  </script>
+</body>
+
+</html>

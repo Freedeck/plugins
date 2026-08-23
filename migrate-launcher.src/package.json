@@ -1,0 +1,17 @@
+{
+  "name": "migrate-launcher",
+  "version": "1.0.0",
+  "description": "Migrate from the App (old launcher) to the modern updater!",
+  "main": "migrator.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Freedeck",
+  "license": "ISC",
+  "type": "commonjs",
+  "freedeck": {
+    "title": "Migrate from Launcher",
+    "package": "plugin"
+  }
+}
