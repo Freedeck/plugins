@@ -18,6 +18,7 @@ let lyrics = {
 	current: null,
 	not_exist: true,
 	values: null,
+	usable: false,
 };
 
 let lastLyric = { time: 0, lyric: "", active: false };
@@ -57,7 +58,7 @@ class Spotify extends Plugin {
 
 		this.useSetting(new SettingBuilder()
 		.setId("lyrics")
-		.setName("Show Lyrics")
+		.setName("Use TextBG")
 		.setDefaultValue("true")
 		.setAllowedValues('true', 'false')
 		.setDescription("This uses TextBG (available on Marketplace) to display real-time lyrics at the top of Freedeck."))
@@ -129,6 +130,16 @@ class Spotify extends Plugin {
 			if (previousState.item?.id !== playbackState?.item?.id) {
 				this.io.emit("spotify_new_song");
 				this.notifyOfSong(playbackState);
+				if (playbackState.item) {
+					const albumName = playbackState.item?.album?.name;
+					const itemName = playbackState.item?.name;
+					this.getLyricsFor(
+						itemName,
+						playbackState.item.artists[0].name,
+						albumName,
+						playbackState.item.duration_ms,
+					);
+				};
 			}
 			if (
 				previousState.playbackState?.is_playing != playbackState.is_playing
@@ -171,6 +182,9 @@ class Spotify extends Plugin {
 	isFetchingLyrics = false;
 	getLyricsFor(name, artist, album, durationMs) {
 		if (this.isFetchingLyrics) return;
+		lyrics.usable = false;
+		lastLyric.lyric = '';
+		lastLyric.time = 0;
 		const url = new URL("https://lrclib.net/api/get");
 		url.search = new URLSearchParams({
 			track_name: name,
@@ -205,6 +219,7 @@ class Spotify extends Plugin {
 					lyrics.values = res.plainLyrics || res || "";
 				}
 				this.log(`Downloaded lyrics for ${artist} - ${name}`)
+				lyrics.usable = true;
 			})
 			.catch((err) => {
 				this.isFetchingLyrics = false;
@@ -229,7 +244,7 @@ class Spotify extends Plugin {
 
 	doLyric(playbackState) {
 		if (Object.keys(playbackState).length == 0) {
-			if (this.getSetting('lyric') == 'true') {
+			if (this.getSetting('lyrics') == 'true') {
 				this.io.emit("textbg-display", "");
 			}
 			this.io.emit("spotify-current-lyric", "");
@@ -244,12 +259,13 @@ class Spotify extends Plugin {
 		if (lastLyric.active) {
 			if (
 				currentLyric.lyric !== lastLyric.lyric ||
-				currentLyric.time !== lastLyric.time
+				currentLyric.time !== lastLyric.time &&
+				this.getSetting('lyrics') == 'true'
 			) {
 				this.io.emit("textbg-command", "pulse");
 			}
 			const tbgTitle = `${lastLyric.lyric}`;
-			if(this.getSetting('lyric') == 'true') this.io.emit("textbg-display", tbgTitle);
+			if(this.getSetting('lyrics') == 'true' && lyrics.usable) this.io.emit("textbg-display", tbgTitle);
 			this.io.emit("spotify-current-lyric", tbgTitle);
 		}
 
@@ -261,8 +277,8 @@ class Spotify extends Plugin {
 				playbackState.item.duration_ms,
 			);
 		} else {
-			if (lyrics.current.name !== itemName && this.getSetting('lyric') == 'true') {
-				if(this.getSetting('lyric') == 'true') this.io.emit("textbg-display", "");
+			if (lyrics.current.name !== itemName && this.getSetting('lyrics') == 'true') {
+				if(this.getSetting('lyrics') == 'true') this.io.emit("textbg-display", "");
 				this.io.emit("spotify-current-lyric", "");
 				this.getLyricsFor(
 					itemName,

@@ -5,20 +5,18 @@ class Clock extends Plugin {
         this.add(HookRef.types.server, "clock/client.js");
         this.add(HookRef.types.client, "clock/client.js");
 
-        this.register({
-            display: 'Time (12h, seconds)',
-            type: 'clock.time'
-        })
+        const add = {
+            "Time (12h, seconds)": "clock.time",
+            "Time (24h, seconds)": "clock.time.24",
+            "Date": "clock.date",
+        }
 
-        this.register({
-            display: 'Time (24h, seconds)',
-            type: 'clock.time.24'
-        })
-
-        this.register({
-            display: 'Date',
-            type: 'clock.date'
-        })
+        for(const k in add) {
+            this.register({
+                display: k,
+                type: add[k]
+            })
+        }
 
         return true;
     }
