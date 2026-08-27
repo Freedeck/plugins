@@ -153,6 +153,7 @@ class Spotify extends Plugin {
 			this.doLyric(playbackState);
 			set("authorizationUrl", authorizationUrl)
 			set("playbackState", { ...playbackState });
+			set("lyrics", lyrics);
 			set("queue", queue);
 			if (previousState == playbackState) return;
 			this.io.emit("spotify_data", dataPacket);

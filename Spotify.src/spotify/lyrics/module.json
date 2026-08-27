@@ -1,0 +1,16 @@
+{
+  "name": "Full Screen Lyrics",
+  "view": "view",
+  "settings": {
+    "background": {
+      "title": "Background Style",
+      "description": "Choose the widget's background style",
+      "type": "select",
+      "default": "blur",
+      "options": {
+        "blur": "Blurred Cover Art",
+        "none": "None"
+      }
+    }
+  }
+}

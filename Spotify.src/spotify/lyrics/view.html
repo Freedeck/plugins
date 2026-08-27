@@ -1,0 +1,224 @@
+<style>
+  html[ctxl-id="/user-data/dash-modules/spotify/lyrics/view"],
+  html[ctxl-id="/user-data/dash-modules/spotify/lyrics/view"] body {
+    width: 100vw !important;
+    height: 100vh !important;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  html[ctxl-id="/user-data/dash-modules/spotify/lyrics/view"] {
+  top: 0 !important;
+  left: 0 !important;
+}
+
+  #lyrics-viewport {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  .song-image-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    filter: blur(40px) brightness(0.4);
+    transform: scale(1.2);
+    background-size: cover;
+    background-position: center;
+    z-index: 0;
+    transition: background-image 1s ease;
+  }
+
+  #lyrics-container {
+    position: relative;
+    z-index: 1;
+    width: 80%;
+    max-width: 900px;
+    height: 85vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 25vh 1rem;
+    box-sizing: border-box;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  #lyrics-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  .lyric-line {
+    font-size: 2.25rem;
+    font-weight: 700;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.35);
+    transition: color 0.25s ease, transform 0.25s ease, filter 0.25s ease;
+    cursor: pointer;
+    user-select: none;
+    transform-origin: left center;
+  }
+
+  .lyric-line:hover {
+    color: rgba(255, 255, 255, 0.65);
+  }
+
+  .lyric-line.active {
+    color: #ffffff;
+    transform: scale(1.04);
+  }
+
+  .empty-lyrics {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    font-size: 1.5rem;
+    color: rgba(255, 255, 255, 0.4);
+  }
+</style>
+
+<freedeck-dash-module id="lyrics-viewport">
+  <div class="song-image-bg"></div>
+  <div id="lyrics-container">
+    <div class="empty-lyrics">Waiting for lyrics...</div>
+  </div>
+</freedeck-dash-module>
+
+<script type="module">
+  const settingsEle = document.querySelector("html[ctxl-id='/user-data/dash-modules/spotify/lyrics/view']");
+  let settings = JSON.parse(settingsEle?.getAttribute("settings") || "{}");
+
+  const lyricsContainer = document.getElementById("lyrics-container");
+  const songImageBg = document.querySelector(".song-image-bg");
+
+  let fullLyrics = [];
+  let lastLyricsHash = "";
+  let activeIndex = -1;
+  let currentProgressMs = 0;
+  let lastUpdateTimestamp = 0;
+  let isPlaying = false;
+  let syncAnimationLoop = null;
+
+  settingsEle.overlaySettingsChanged = (_settings) => {
+    settings = _settings;
+  };
+
+  universal.on("spotify_data", (data) => {
+    const playbackState = data.playbackState || data;
+    
+    if (playbackState && playbackState.item) {
+      isPlaying = playbackState.is_playing;
+      currentProgressMs = playbackState.progress_ms || 0;
+      lastUpdateTimestamp = performance.now();
+
+      const songImage = playbackState.item?.album?.images[0]?.url;
+      if (songImage && settings.background !== "none") {
+        songImageBg.style.backgroundImage = `url(${songImage})`;
+      }
+      if(settings.background == 'none') {
+        songImageBg.style.backgroundImage = `none`;
+      }
+    }
+
+    if (data.lyrics !== undefined) {
+      const incomingHash = JSON.stringify(data.lyrics);
+      if (incomingHash !== lastLyricsHash) {
+        lastLyricsHash = incomingHash;
+        renderLyrics(data.lyrics);
+      }
+    }
+  });
+
+  function renderLyrics(lyricsData) {
+    lyricsContainer.innerHTML = "";
+    activeIndex = -1;
+
+    const lines = lyricsData?.values || (Array.isArray(lyricsData) ? lyricsData : []);
+
+    if (!lyricsData || lyricsData.not_exist || lines.length === 0) {
+      lyricsContainer.innerHTML = '<div class="empty-lyrics">No lyrics available</div>';
+      fullLyrics = [];
+      return;
+    }
+
+    fullLyrics = lines;
+    const fragment = document.createDocumentFragment();
+
+    fullLyrics.forEach((line, index) => {
+      const lyricText = typeof line === "string" ? line : (line.lyric ?? line.words ?? line.text ?? "");
+      const time = typeof line === "object" ? (line.time ?? line.startTimeMs) : undefined;
+
+      const lineEle = document.createElement("div");
+      lineEle.classList.add("lyric-line");
+      lineEle.dataset.index = index;
+      lineEle.textContent = lyricText || " ";
+
+      lineEle.addEventListener("click", () => {
+        if (time !== undefined) {
+          universal.send("spotify_seek", time);
+        }
+      });
+
+      fragment.appendChild(lineEle);
+    });
+
+    lyricsContainer.appendChild(fragment);
+
+    if (!syncAnimationLoop) {
+      startSyncLoop();
+    }
+  }
+
+  function updateActiveLyric() {
+    if (!fullLyrics.length) return;
+
+    let nowMs = currentProgressMs;
+    if (isPlaying) {
+      nowMs += performance.now() - lastUpdateTimestamp;
+    }
+
+    let newIndex = -1;
+
+    for (let i = 0; i < fullLyrics.length; i++) {
+      const line = fullLyrics[i];
+      const time = typeof line === "object" ? (line.time ?? line.startTimeMs) : undefined;
+      
+      if (time !== undefined && time <= nowMs) {
+        newIndex = i;
+      } else if (time !== undefined && time > nowMs) {
+        break;
+      }
+    }
+
+    if (newIndex !== activeIndex && newIndex !== -1) {
+      const previous = lyricsContainer.querySelector(`.lyric-line[data-index="${activeIndex}"]`);
+      if (previous) previous.classList.remove("active");
+
+      const current = lyricsContainer.querySelector(`.lyric-line[data-index="${newIndex}"]`);
+      if (current) {
+        current.classList.add("active");
+        current.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+
+      activeIndex = newIndex;
+    }
+  }
+
+  function startSyncLoop() {
+    function loop() {
+      updateActiveLyric();
+      syncAnimationLoop = requestAnimationFrame(loop);
+    }
+    syncAnimationLoop = requestAnimationFrame(loop);
+  }
+</script>
