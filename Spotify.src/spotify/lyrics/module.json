@@ -11,6 +11,12 @@
         "blur": "Blurred Cover Art",
         "none": "None"
       }
+    },
+    "hidebody": {
+      "title": "Hide Freedeck Theme",
+      "description": "Hide the background, allowing the background of this widget to be the only one.",
+      "type": "boolean",
+      "default": "true"
     }
   }
 }

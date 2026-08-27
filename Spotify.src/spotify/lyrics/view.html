@@ -13,6 +13,10 @@
   left: 0 !important;
 }
 
+  .hide-body {
+    background: black !important;
+  }
+
   #lyrics-viewport {
     position: relative;
     width: 100vw;
@@ -99,6 +103,7 @@
   let settings = JSON.parse(settingsEle?.getAttribute("settings") || "{}");
 
   const lyricsContainer = document.getElementById("lyrics-container");
+  const body = document.querySelector("body");
   const songImageBg = document.querySelector(".song-image-bg");
 
   let fullLyrics = [];
@@ -127,6 +132,15 @@
       }
       if(settings.background == 'none') {
         songImageBg.style.backgroundImage = `none`;
+      }
+      if(settings.hidebody == 'true') {
+        if(!body.classList.contains("hide-body")) {
+          body.classList.add('hide-body')
+        }
+      } else {
+        if(body.classList.contains("hide-body")) {
+          body.classList.remove('hide-body')
+        }
       }
     }
 
